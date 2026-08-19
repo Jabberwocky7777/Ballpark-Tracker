@@ -1,0 +1,14 @@
+# Normalize to LF in the repo. Windows working copies may check out CRLF, but
+# anything that runs inside the Linux container must not: a CRLF shebang line
+# fails with a confusing "bad interpreter" error.
+* text=auto eol=lf
+
+*.sh   text eol=lf
+*.mjs  text eol=lf
+*.py   text eol=lf
+Dockerfile text eol=lf
+
+# Binary
+*.png  binary
+*.jpg  binary
+*.woff2 binary
