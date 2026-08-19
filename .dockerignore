@@ -1,0 +1,23 @@
+# Mirrors .gitignore. Nothing sensitive is ever baked into an image layer.
+.git
+.github
+.env
+.env.*
+!.env.example
+docs/
+node_modules
+.next
+out
+coverage
+*.db
+*.db-wal
+*.db-shm
+/data
+/photos
+/originals
+/derived
+/samples
+*.heic
+*.HEIC
+*.jpg
+*.jpeg

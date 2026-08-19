@@ -1,0 +1,44 @@
+# --- Nothing of value in a public repo. Read CLAUDE.md before loosening any of this. ---
+
+# Secrets and machine-specific config
+.env
+.env.*
+!.env.example
+
+# Homelab specifics: real paths, ports, hostnames, deploy walkthrough
+docs/private/
+
+# The database and anything derived from it
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+/data/
+/exports/
+
+# Photos never live in the repo. They live on the datasets, mounted at runtime.
+/photos/
+/originals/
+/derived/
+/samples/
+*.heic
+*.HEIC
+*.heif
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.cr2
+*.dng
+# Intentional UI assets are the only exception; add them explicitly, e.g.:
+# !public/img/og-default.jpg
+
+# Build output and tooling
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
