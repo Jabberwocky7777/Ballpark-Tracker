@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* Tokens from docs/look-and-feel.md. One accent, and it only ever means done. */
+@theme {
+  --color-ink: #16213a;
+  --color-ink-deep: #101a30;
+  --color-ink-panel: #1c2947;
+  --color-ink-line: #26324f;
+  --color-chalk: #f4f5f2;
+  --color-chalk-muted: #9aa2b8;
+  --color-chalk-dim: #5b647c;
+  --color-paper: #f4f5f2;
+  --color-paper-ink: #16213a;
+  --color-paper-ink-soft: #2c3040;
+  --color-paper-muted: #7b8060;
+  --color-accent: #e0713f;
+  --color-accent-hover: #c65a2a;
+  --color-not-done: #aeb4c2;
+
+  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-body: var(--font-public-sans), system-ui, sans-serif;
+  --font-tabular: var(--font-space-grotesk), ui-monospace, monospace;
+}
+
+/* The product is one continuous scrollable card, not a boxed dashboard. */
+:root {
+  --content: 520px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-ink);
+  color: var(--color-chalk);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Numbers get presence from the tabular face, never from a progress bar. */
+.tabular {
+  font-family: var(--font-tabular);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+}
+
+.label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Focus must be visible on every interactive element, including SVG pins. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+svg :where(a, g[tabindex], [role="button"]):focus-visible {
+  outline: none;
+}
+svg :where(a, g[tabindex], [role="button"]):focus-visible .pin-focus {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
