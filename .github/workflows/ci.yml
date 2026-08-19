@@ -33,4 +33,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck --if-present
-      - run: npm test
+      # No test script until Phase 1, which starts with computeProgress() and
+      # its unit tests. --if-present keeps this honest rather than green-by-stub.
+      - run: npm run test --if-present

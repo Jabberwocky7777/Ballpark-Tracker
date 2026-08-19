@@ -38,15 +38,24 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=sha,format=short
+            type=ref,event=branch,suffix=-spike
+            type=sha,format=short,suffix=-spike
 
+      # Phase 0: the spike target is what gets published, because the runner
+      # stage has no app in it yet. Phase 1 switches this to `runner` and
+      # restores the semver tags.
       - uses: docker/build-push-action@v6
         with:
           context: .
+          target: spike
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: How to run the spike
+        run: |
+          echo "Pull on a machine with Docker and real photos, then:"
+          echo "  docker run --rm -v /path/to/photos:/in:ro \\"
+          echo "    ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-spike /in"

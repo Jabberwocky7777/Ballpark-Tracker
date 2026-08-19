@@ -48,6 +48,16 @@ The site is served at a subdomain of the personal domain. The actual hostname is
 
 ## Open — HEIC decode path
 
-To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar.
+To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.
 
-**Record the winner here**, with the timing numbers from the spike, before writing any UI. If none of the three work in-container, the stack changes and this plan needs revisiting.
+**How to run it.** CI publishes the spike image on every push to `main`. On any machine with Docker and a folder of real photos off both phones:
+
+```bash
+docker run --rm -v /path/to/photos:/in:ro ghcr.io/<owner>/ballpark-tracker:main-spike /in
+```
+
+It reads only — it writes nothing, moves nothing, and never modifies the input files. It prints per-file GPS, timestamp, and decode results, then a summary and a verdict.
+
+**Record the winner here**, with the timing numbers and the no-GPS percentage, before writing any UI. If none of the three work in-container, the spike exits non-zero — the stack changes and the plan needs revisiting.
+
+Note the spike is also the first real measurement of the 20–40% no-GPS estimate in `docs/plan.md` §4.1. If it comes back much worse, the manual assignment queue needs more design attention than Phase 3 currently budgets.
