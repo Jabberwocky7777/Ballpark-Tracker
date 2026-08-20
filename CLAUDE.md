@@ -106,7 +106,11 @@ Portable rules:
 
 **Originals are immutable.** Written once at ingest, never modified, never moved by the app. Derivatives are regenerable and disposable.
 
-**Admin and upload routes are not public.** Middleware compares the request `Host` against `PUBLIC_HOSTNAME`; if they match, `/admin` and `/api/upload*` return **404** — not 403, which would confirm they exist. Tailscale/LAN clients reach the app directly and get through. `X-Forwarded-For` is trusted only when the peer address is `TRUSTED_PROXY_IP`. A real login (argon2id, secure session cookie) sits behind that as the second lock. The guest upload endpoint is the one deliberate exception.
+**Admin and upload routes are not public.** The reverse proxy is the primary gate: it serves only the public read-only routes and blocks `/admin`, `/api/upload*` and `/api/admin*`. A real login (argon2id, secure session cookie) sits behind that.
+
+The app can *optionally* help. Set `PUBLIC_HOSTNAME` and middleware compares the request `Host` against it; on a match those paths return **404** — not 403, which would confirm they exist. Unset, the app does no host gating at all and says so at startup, leaving the proxy solely responsible. Both postures are supported; what is not supported is believing the app is gating when it isn't, which is why it logs which one is in force.
+
+`X-Forwarded-For` is trusted only when the peer address is `TRUSTED_PROXY_IP`, which is also optional and only affects login rate-limit bucketing. The guest upload endpoint is the one deliberate public exception.
 
 **Every photo is private until published.** `is_public = 0` at ingest regardless of uploader. The home-coordinate guard is an additional, louder flag on top of that — not the only gate.
 
