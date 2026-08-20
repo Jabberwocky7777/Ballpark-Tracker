@@ -10,11 +10,11 @@ The public site is read-only. Upload and admin are reachable only over Tailscale
 
 Early, and honest about it. See `docs/plan.md` for the full spec and build phases.
 
-**Working:** the check-off rule and its counters; the map dashboard, park page and repeated-shot grid; a SQLite schema with migrations and seeded reference data; the admin lock (host gate plus argon2id login); and the pure algorithms the ingest pipeline will sit on — geo-matching tiers, timestamp resolution, and the home-coordinate guard, all unit tested.
+**Working:** the check-off rule and its counters; the map dashboard, park page and repeated-shot grid; a SQLite schema with migrations and seeded reference data; the admin lock (host gate plus argon2id login); and the ingest pipeline — upload or bulk CLI import, magic-byte validation, dedupe on content hash, EXIF reading, geo-matching with confidence tiers, and background derivative generation with EXIF stripped.
 
-**Not built yet:** photo upload and the ingest pipeline that would use those algorithms, derivative generation and EXIF stripping, the background job queue, the assignment queue beyond an empty shell, StatsAPI game autofill, trips, stats, rankings, guest links. There are no photos in the app at all, and the park pages say so rather than showing placeholder tiles.
+**Not built yet:** the assignment queue beyond a counter, so photos that need a park picked by hand can be uploaded but not yet assigned; publish controls, so nothing uploaded is visible on the public side yet; StatsAPI game autofill; trips, stats, rankings, guest links.
 
-**Unanswered:** whether HEIC decodes inside the target image. `scripts/spike-exif.mjs` and the `spike` image target exist to settle it; they have not been run against real photos.
+**Unanswered:** whether HEIC decodes inside the target image. The pipeline does not wait on the answer — it tries `sharp`, then `heic-convert`, then a `pillow-heif` sidecar, and keeps whichever works — but `scripts/spike-exif.mjs` and the `spike` image target exist to measure it against real photos, and have not been run.
 
 ## Stack
 
@@ -40,6 +40,13 @@ npm run db:seed -- --demo
 
 ```bash
 npm test
+```
+
+To import a directory of photos without going near a browser — resumable, and
+it never modifies the source files:
+
+```bash
+npm run import:photos -- /path/to/album-export --as user_a
 ```
 
 ## Deploying
