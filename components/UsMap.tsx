@@ -46,8 +46,13 @@ const PIN_W = 16;
  *  hit with a mouse, especially the hollow ones. */
 const HIT_R = 15;
 const PIN_H = (PIN_W * 26) / 24;
-/** The silhouette's home-plate tip sits at y=23 of the 26-unit box. */
-const TIP_Y = (PIN_H * 23) / 26;
+/**
+ * These shapes are blobs rather than teardrop pins, so they are centred on the
+ * coordinate rather than balanced on their bottom tip. Tip-anchoring put the
+ * whole visible mass north of the city, which read as every park sitting a
+ * little too far up the map.
+ */
+const CENTRE_Y = PIN_H / 2;
 
 const CARD_W = 170;
 
@@ -117,13 +122,13 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
         {ordered.map((pin) => {
           const s = fingerprintStyle(pin.parkState);
           const tx = pin.x - PIN_W / 2;
-          const ty = pin.y - TIP_Y;
+          const ty = pin.y - CENTRE_Y;
           const label = `${pin.name}, ${pin.city} — ${STATE_LABEL[pin.parkState]}`;
           const shape = (
             <>
               <circle
                 cx={PIN_W / 2}
-                cy={TIP_Y - PIN_H / 2}
+                cy={CENTRE_Y}
                 r={HIT_R}
                 fill="transparent"
                 stroke="none"

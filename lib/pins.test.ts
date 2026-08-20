@@ -65,9 +65,34 @@ describe("separatePins", () => {
     assert.deepEqual(a, b);
   });
 
-  test("resolves a dense cluster without leaving any pair overlapping", () => {
+  test("resolves a dense cluster when the drift cap allows it", () => {
     const cluster = Array.from({ length: 6 }, (_, i) => pin(`p${i}`, 250 + i * 0.5, 250 + i * 0.3));
-    assert.ok(minGap(separatePins(cluster, 16)) >= 15.9);
+    assert.ok(minGap(separatePins(cluster, 16, 60)) >= 15.9);
+  });
+
+  test("the drift cap wins over separation, so no pin lands somewhere false", () => {
+    // Deliberate: a park nudged into the ocean to make room reads as a bug,
+    // while two pins touching still reads as two parks.
+    const cluster = Array.from({ length: 6 }, (_, i) => pin(`p${i}`, 250 + i * 0.5, 250 + i * 0.3));
+    const cap = 10;
+    const out = separatePins(cluster, 40, cap);
+    for (const p of out) {
+      const drift = Math.hypot(p.x - p.anchorX, p.y - p.anchorY);
+      assert.ok(drift <= cap + 0.001, `${p.id} drifted ${drift.toFixed(1)}, cap is ${cap}`);
+    }
+  });
+
+  test("cities a hundred-odd kilometres apart are left where they are", () => {
+    // San Francisco and Sacramento are about seven units apart at map scale.
+    // An aggressive separation distance pushed them to opposite sides of the
+    // truth, which put Oracle Park in the Pacific.
+    const out = separatePins([pin("sf", 100, 300), pin("sac", 107, 296)]);
+    for (const p of out) {
+      assert.ok(
+        Math.hypot(p.x - p.anchorX, p.y - p.anchorY) < 5,
+        `${p.id} moved too far for two genuinely distinct cities`,
+      );
+    }
   });
 
   test("does not mutate its input", () => {

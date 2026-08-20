@@ -18,6 +18,13 @@ export interface ProjectedVenue {
 /**
  * Push overlapping pins apart.
  *
+ * Kept deliberately gentle. San Francisco and Sacramento are about 120km apart,
+ * which is only seven units at this scale, so a large separation distance
+ * shoves them to opposite sides of where they belong -- and on a coastline that
+ * puts a park in the Pacific. Pins are allowed to overlap slightly instead:
+ * two shapes touching still reads as two parks, whereas a park in the ocean
+ * reads as a bug.
+ *
  * Several parks sit within a few pixels of each other at this scale -- Globe
  * Life Field is 0.1px from the park it replaced, and Yankee Stadium, Citi
  * Field, Wrigley and Rate Field are all inside a single pin's width of a
@@ -29,8 +36,8 @@ export interface ProjectedVenue {
  */
 export function separatePins(
   pins: ProjectedVenue[],
-  minDistance = 18,
-  maxDisplacement = 26,
+  minDistance = 10,
+  maxDisplacement = 10,
 ): ProjectedVenue[] {
   const out = [...pins]
     .sort((a, b) => a.id.localeCompare(b.id))
