@@ -15,31 +15,31 @@ export default function AdminQueuePage() {
 
   return (
     <main className="pt-5">
-      <h1 className="display text-[26px] leading-tight text-chalk">Queue</h1>
+      <h1 className="display text-[26px] leading-tight text-ink">Queue</h1>
 
       <section className="mt-6">
-        <h2 className="label text-chalk-dim">Needs a park</h2>
+        <h2 className="label text-muted">Needs a park</h2>
         {unassigned.length === 0 ? (
-          <p className="mt-2 text-[14px] text-chalk-muted">
+          <p className="mt-2 text-[14px] text-muted">
             Nothing waiting. Photos with no usable GPS land here to be assigned.
           </p>
         ) : (
-          <p className="tabular mt-2 text-[14px] text-chalk">{unassigned.length} photos</p>
+          <p className="tabular mt-2 text-[14px] text-ink">{unassigned.length} photos</p>
         )}
       </section>
 
       <section className="mt-7">
-        <h2 className="label text-chalk-dim">Needs review</h2>
+        <h2 className="label text-muted">Needs review</h2>
         {needsReview.length === 0 ? (
-          <p className="mt-2 text-[14px] text-chalk-muted">
+          <p className="mt-2 text-[14px] text-muted">
             Nothing waiting. Guest uploads and anything flagged near home arrive here first.
           </p>
         ) : (
-          <p className="tabular mt-2 text-[14px] text-chalk">{needsReview.length} photos</p>
+          <p className="tabular mt-2 text-[14px] text-ink">{needsReview.length} photos</p>
         )}
       </section>
 
-      <p className="mt-10 text-[13px] text-chalk-dim">
+      <p className="mt-10 text-[13px] text-muted">
         Upload and bulk assignment arrive with the ingest pipeline.
       </p>
     </main>

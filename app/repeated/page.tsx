@@ -37,13 +37,13 @@ export default function RepeatedShotPage() {
     .sort((a, b) => (a.visit?.visitDate ?? "").localeCompare(b.visit?.visitDate ?? ""));
 
   return (
-    <main className="-mx-5 min-h-screen bg-paper px-5 pb-10 pt-6 text-paper-ink">
-      <Link href="/" className="label text-paper-muted hover:text-paper-ink">
+    <main className="pt-6 pb-10">
+      <Link href="/" className="label text-muted hover:text-ink">
         ← Map
       </Link>
 
       <h1 className="display mt-5 text-[30px] leading-tight">The shot</h1>
-      <p className="mt-2 max-w-[38ch] text-[14px] text-paper-ink-soft">
+      <p className="mt-2 max-w-[38ch] text-[14px] text-ink-body">
         The same photo at every park: both of us, field behind, same framing. In the order we took
         them.
       </p>
@@ -52,17 +52,17 @@ export default function RepeatedShotPage() {
         {done.map(({ vp, visit }) => (
           <figure key={vp.venue.id}>
             <Link href={`/park/${vp.venue.slug}`} className="block">
-              <div className="aspect-[4/5] bg-paper-ink/8" />
+              <div className="aspect-[4/5] bg-paper-inset" />
             </Link>
             <figcaption className="mt-2">
               <p className="display text-[15px] leading-tight">{vp.venue.name}</p>
-              <p className="tabular mt-0.5 text-[11px] text-paper-muted">{visit?.visitDate}</p>
+              <p className="tabular mt-0.5 text-[11px] text-muted">{visit?.visitDate}</p>
             </figcaption>
           </figure>
         ))}
       </div>
 
-      <p className="mt-8 text-[13px] text-paper-muted">
+      <p className="mt-8 text-[13px] text-muted">
         {progress.ballparksTotal - progress.ballparksChecked} still to go.
       </p>
     </main>

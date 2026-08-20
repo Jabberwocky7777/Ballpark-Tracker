@@ -1,30 +1,28 @@
 @import "tailwindcss";
 
-/* Tokens from docs/look-and-feel.md. One accent, and it only ever means done. */
+/* Tokens from docs/look-and-feel.md. One warm cream surface throughout -- no
+   dark screens, no second near-black, no second muted brown. Two accents only:
+   orange means done, gold means the asterisk caveat. */
 @theme {
-  --color-ink: #16213a;
-  --color-ink-deep: #101a30;
-  --color-ink-panel: #1c2947;
-  --color-ink-line: #26324f;
-  --color-chalk: #f4f5f2;
-  --color-chalk-muted: #9aa2b8;
-  --color-chalk-dim: #5b647c;
-  --color-paper: #f4f5f2;
-  --color-paper-ink: #16213a;
-  --color-paper-ink-soft: #2c3040;
-  --color-paper-muted: #7b8060;
+  --color-ink: #0f1b2e;
+  --color-ink-body: #33372a;
+  --color-paper: #f3efe4;
+  --color-paper-inset: #ece4d0;
+  --color-paper-line: #d9d2b8;
+  --color-muted: #8a7a52;
+  --color-not-done: #a89a6e;
   --color-accent: #e0713f;
   --color-accent-hover: #c65a2a;
-  --color-not-done: #aeb4c2;
+  --color-gold: #d9a441;
+  --color-card: #ffffff;
 
-  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
   --font-body: var(--font-public-sans), system-ui, sans-serif;
   --font-tabular: var(--font-space-grotesk), ui-monospace, monospace;
 }
 
-/* One continuous scrollable card, not a boxed dashboard -- but it should not
-   sit in a narrow ribbon on a desktop monitor either. The 520px column is the
-   phone design; wider screens get room rather than a different layout. */
+/* One continuous scrollable surface, not a boxed dashboard. 520px is the phone
+   design; wider screens get room rather than a different layout. */
 :root {
   --content: 520px;
 }
@@ -53,8 +51,8 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--color-ink);
-  color: var(--color-chalk);
+  background: var(--color-paper);
+  color: var(--color-ink-body);
   font-size: 14px;
   line-height: 1.55;
 }
@@ -65,6 +63,17 @@ body {
   }
 }
 
+/* Oswald, uppercase and tracked -- reads as ballpark scoreboard rather than
+   generic app. Wordmark, park names, page titles, section labels. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+  line-height: 1.1;
+}
+
 /* Numbers get presence from the tabular face, never from a progress bar. */
 .tabular {
   font-family: var(--font-tabular);
@@ -72,16 +81,22 @@ body {
   letter-spacing: -0.01em;
 }
 
-.display {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: 0.005em;
-}
-
 .label {
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+/* Elevated card: white on paper, hairline border, 2px accent top bar. Used by
+   the counters and the park page's opponent/score/seats block -- the same
+   treatment in both places, deliberately. */
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-paper-line);
+  border-top: 2px solid var(--color-accent);
+  border-radius: 3px;
 }
 
 /* Focus must be visible on every interactive element, including SVG pins. */

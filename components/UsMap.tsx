@@ -23,6 +23,14 @@ export interface MapPin {
   blurb: string;
   /** Set on an asterisked park: the franchise that moved here. */
   newParkFor: string | null;
+  /**
+   * A published photo of this park, if one exists, for the hover preview.
+   *
+   * Deliberately sourced from the couple's own library. Aerial-photo
+   * directories are copyrighted, so nothing is scraped or hot-linked: the slot
+   * stays empty until a photo is uploaded and published.
+   */
+  heroPhotoId: string | null;
 }
 
 interface Props {
@@ -47,6 +55,7 @@ const STATE_LABEL: Record<ParkState, string> = {
 
 export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props) {
   const [selected, setSelected] = useState<MapPin | null>(null);
+  const [hovered, setHovered] = useState<MapPin | null>(null);
 
   // Done pins render last so they sit above the hollow ones where the
   // northeast gets crowded.
@@ -59,25 +68,27 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
     <div className="relative">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto block"
+        className="block h-auto w-full"
         // Deliberately not role="img": that collapses the whole map into a
         // single image node and hides all 30-plus interactive pins from
         // assistive technology.
         role="group"
         aria-label="Map of MLB ballparks. Each pin links to a park."
       >
-        <rect width={width} height={height} fill="var(--color-ink-deep)" />
+        {/* The inset well: one shade darker than the page, so it reads as a
+            panel within the page rather than a change of mode. */}
+        <rect width={width} height={height} fill="var(--color-paper-inset)" />
 
         {neighbourPaths.map((d, i) => (
-          <path key={`n${i}`} d={d} fill="var(--color-ink)" />
+          <path key={`n${i}`} d={d} fill="var(--color-paper-line)" />
         ))}
         {statePaths.map((d, i) => (
           <path
             key={`s${i}`}
             d={d}
-            fill="var(--color-ink-panel)"
-            stroke="var(--color-ink-line)"
-            strokeWidth={0.7}
+            fill="var(--color-paper)"
+            stroke="var(--color-paper-line)"
+            strokeWidth={0.8}
           />
         ))}
 
@@ -91,15 +102,15 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
                 y1={p.anchorY}
                 x2={p.x}
                 y2={p.y}
-                stroke="var(--color-chalk-dim)"
-                strokeWidth={0.6}
+                stroke="var(--color-not-done)"
+                strokeWidth={0.7}
               />
-              <circle cx={p.anchorX} cy={p.anchorY} r={0.9} fill="var(--color-chalk-dim)" />
+              <circle cx={p.anchorX} cy={p.anchorY} r={1} fill="var(--color-not-done)" />
             </g>
           ))}
 
         {ordered.map((pin) => {
-          const s = fingerprintStyle(pin.parkState, "ink");
+          const s = fingerprintStyle(pin.parkState);
           const tx = pin.x - PIN_W / 2;
           const ty = pin.y - TIP_Y;
           const label = `${pin.name}, ${pin.city} — ${STATE_LABEL[pin.parkState]}`;
@@ -127,15 +138,31 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
               />
+              {/* Gold is the second accent and marks exactly one thing. */}
               {pin.parkState === "done-asterisk" && (
-                <circle cx={PIN_W - 1.5} cy={2.5} r={2.4} fill={s.dot} />
+                <circle
+                  cx={PIN_W - 2}
+                  cy={3}
+                  r={3}
+                  fill="var(--color-gold)"
+                  stroke="var(--color-ink)"
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
+                />
               )}
             </>
           );
 
+          const hoverHandlers = {
+            onMouseEnter: () => setHovered(pin),
+            onMouseLeave: () => setHovered((h) => (h?.id === pin.id ? null : h)),
+            onFocus: () => setHovered(pin),
+            onBlur: () => setHovered((h) => (h?.id === pin.id ? null : h)),
+          };
+
           return pin.parkState === "done" ? (
             <Link key={pin.id} href={`/park/${pin.slug}`} aria-label={label}>
-              <g transform={`translate(${tx} ${ty})`} className="cursor-pointer">
+              <g transform={`translate(${tx} ${ty})`} className="cursor-pointer" {...hoverHandlers}>
                 {shape}
               </g>
             </Link>
@@ -154,6 +181,7 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
                   setSelected(pin);
                 }
               }}
+              {...hoverHandlers}
             >
               {shape}
             </g>
@@ -161,33 +189,57 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
         })}
       </svg>
 
+      {/* Hover preview, positioned as a percentage of the map so it tracks the
+          pin at any width. Pointer-events off so it never eats the click.
+          Desktop only -- there is no hover on a phone, which is what the bottom
+          sheet is for. */}
+      {hovered && (
+        <div
+          className="pointer-events-none absolute z-30 hidden w-[168px] -translate-x-1/2 -translate-y-full sm:block"
+          style={{
+            left: `${(hovered.x / width) * 100}%`,
+            top: `${(hovered.y / height) * 100}%`,
+            marginTop: -10,
+          }}
+        >
+          <div className="overflow-hidden rounded-[3px] border border-paper-line bg-card shadow-sm">
+            <PreviewImage photoId={hovered.heroPhotoId} name={hovered.name} />
+            <p className="display px-2 py-1.5 text-[11px] leading-tight">{hovered.name}</p>
+          </div>
+        </div>
+      )}
+
       {selected && (
         <>
           <button
             aria-label="Close"
-            className="fixed inset-0 z-40 bg-ink-deep/70"
+            className="fixed inset-0 z-40 bg-ink/40"
             onClick={() => setSelected(null)}
           />
           <div
             role="dialog"
             aria-label={selected.name}
-            className="shell fixed inset-x-0 bottom-0 z-50 border-t border-ink-line bg-ink-panel px-5 pb-7 pt-4"
+            className="shell fixed inset-x-0 bottom-0 z-50 border-t border-paper-line bg-paper px-5 pb-7 pt-4"
           >
-            <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-chalk-dim" />
-            <p className="label text-chalk-dim">Not yet</p>
-            <h2 className="display mt-1 text-[22px] leading-tight text-chalk">{selected.name}</h2>
-            <p className="tabular mt-0.5 text-[12px] text-chalk-muted">
+            <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-paper-line" />
+            <p className="label text-muted">Not yet</p>
+            <h2 className="display mt-1 text-[20px]">{selected.name}</h2>
+            <p className="tabular mt-0.5 text-[12px] text-muted">
               {selected.city}, {selected.state}
             </p>
-            <p className="mt-3 text-[14px] text-chalk-muted">{selected.blurb}</p>
+            <p className="mt-3 text-[14px] text-ink-body">{selected.blurb}</p>
             {selected.newParkFor && (
-              <p className="mt-3 text-[13px] text-chalk-muted">
+              <p className="mt-3 flex items-start gap-2 text-[13px] text-muted">
+                <span
+                  className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-gold"
+                  aria-hidden="true"
+                />
                 New park since your visit — the {selected.newParkFor} moved here.
               </p>
             )}
             <button
               onClick={() => setSelected(null)}
-              className="mt-5 w-full border border-ink-line py-2.5 text-[13px] text-chalk-muted hover:text-chalk"
+              className="mt-5 w-full border border-paper-line py-2.5 text-[13px] text-muted hover:text-ink"
             >
               Close
             </button>
@@ -195,5 +247,29 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * The image slot. Empty until a photo of this park is uploaded and published --
+ * a slot for their own photos, not a hole waiting on a scraper.
+ */
+function PreviewImage({ photoId, name }: { photoId: string | null; name: string }) {
+  if (!photoId) {
+    return (
+      <div className="flex aspect-[16/10] items-center justify-center bg-paper-inset">
+        <span className="label px-2 text-center text-[8px] leading-tight text-muted">
+          No photo yet
+        </span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={`/api/photo/${photoId}/thumb`}
+      alt={name}
+      loading="lazy"
+      className="aspect-[16/10] w-full bg-paper-inset object-cover"
+    />
   );
 }

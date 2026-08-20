@@ -1,21 +1,23 @@
 import type { ParkState } from "@/lib/types";
 
 /**
- * PLACEHOLDER SILHOUETTES.
+ * ORIGINAL STYLIZED OUTLINES — not team logos, not traced from any one park.
  *
- * The real asset is 30 traced outfield-wall outlines -- Fenway's Monster
- * corner, PNC's notch, Houston's angles -- normalised to a common bounding box
- * at a single stroke weight. That is the signature element of the whole product
- * and deserves real illustration work, not procedural generation.
+ * Team marks and wordmarks are trademarked regardless of personal or
+ * non-commercial use, so they are never used anywhere in this product. These
+ * are asymmetric wall-notch shapes that evoke the quirks of real outfield walls
+ * without reproducing any specific one.
  *
- * These eight are stand-ins with the right silhouette character so the state
- * system, the legend, and the layout can be built and tested now. Each is drawn
- * in a 0..24 box with the "home plate" corner at bottom-centre.
+ * If true per-park uniqueness is wanted later, the route is commissioned or
+ * hand-traced architectural silhouettes of outfield-wall footprints -- still
+ * not logos -- normalised to one bounding box and stroke weight.
+ *
+ * Each is drawn in a 0..24 box with the home-plate corner at bottom-centre.
  */
 const SHAPES = [
   // 0 - symmetrical, gentle arc
   "M3 20 L3 11 Q12 3 21 11 L21 20 L12 23 Z",
-  // 1 - tall flat left wall, the Fenway-ish one
+  // 1 - tall flat left wall
   "M3 20 L3 4 L10 4 L10 9 Q17 10 21 14 L21 20 L12 23 Z",
   // 2 - angled corner cut
   "M3 20 L3 12 L9 5 L18 5 L21 12 L21 20 L12 23 Z",
@@ -36,31 +38,43 @@ export function fingerprintPath(index: number): string {
 }
 
 /**
- * Which surface the mark sits on. The palette has a dark map surface and a
- * light browsing surface, and the hollow states are drawn in chalk -- which is
- * the same value as the paper background. Without this the asterisked and
- * not-done marks are literally invisible on a park page.
- */
-export type Surface = "ink" | "paper";
-
-/**
  * Shape carries the state; colour is secondary. Solid / hollow / dashed stay
  * distinguishable in greyscale, which is the accessibility requirement.
+ *
+ * Everything sits on cream now, so there is one set of colours rather than a
+ * light and a dark variant.
  */
-export function fingerprintStyle(state: ParkState, surface: Surface = "ink") {
-  const hollow = surface === "paper" ? "var(--color-paper-muted)" : "var(--color-not-done)";
-  const strong = surface === "paper" ? "var(--color-paper-ink)" : "var(--color-chalk)";
-
+export function fingerprintStyle(state: ParkState) {
   switch (state) {
     case "done":
-      return { fill: "var(--color-accent)", stroke: strong, strokeWidth: 1, dash: undefined, dot: strong };
+      return {
+        fill: "var(--color-accent)",
+        stroke: "var(--color-ink)",
+        strokeWidth: 1.5,
+        dash: undefined,
+      };
     case "done-asterisk":
-      return { fill: "none", stroke: strong, strokeWidth: 2.5, dash: undefined, dot: strong };
+      return {
+        fill: "var(--color-accent)",
+        stroke: "var(--color-ink)",
+        strokeWidth: 1.5,
+        dash: undefined,
+      };
     case "temporary":
-      return { fill: "none", stroke: hollow, strokeWidth: 2.5, dash: "3 2.5", dot: strong };
+      return {
+        fill: "none",
+        stroke: "var(--color-not-done)",
+        strokeWidth: 2,
+        dash: "3 2.5",
+      };
     case "not-done":
     default:
-      return { fill: "none", stroke: hollow, strokeWidth: 2.5, dash: undefined, dot: strong };
+      return {
+        fill: "none",
+        stroke: "var(--color-not-done)",
+        strokeWidth: 2,
+        dash: undefined,
+      };
   }
 }
 
@@ -69,14 +83,19 @@ interface Props {
   state: ParkState;
   size?: number;
   className?: string;
-  surface?: Surface;
 }
 
-/** Standalone fingerprint, for legends and page headers. */
-export function Fingerprint({ index, state, size = 24, className, surface = "ink" }: Props) {
-  const s = fingerprintStyle(state, surface);
+/** Standalone mark, for legends and page headers. */
+export function Fingerprint({ index, state, size = 24, className }: Props) {
+  const s = fingerprintStyle(state);
   return (
-    <svg viewBox="0 0 24 26" width={size} height={(size * 26) / 24} className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 24 26"
+      width={size}
+      height={(size * 26) / 24}
+      className={className}
+      aria-hidden="true"
+    >
       <path
         d={fingerprintPath(index)}
         fill={s.fill}
@@ -85,7 +104,11 @@ export function Fingerprint({ index, state, size = 24, className, surface = "ink
         strokeDasharray={s.dash}
         strokeLinejoin="round"
       />
-      {state === "done-asterisk" && <circle cx="21.5" cy="4.5" r="2.6" fill={s.dot} />}
+      {/* Gold is the second accent and marks exactly one thing: the team is
+          checked off but this park has replaced the one they were seen at. */}
+      {state === "done-asterisk" && (
+        <circle cx="21" cy="4.5" r="3" fill="var(--color-gold)" stroke="var(--color-ink)" strokeWidth="1" />
+      )}
     </svg>
   );
 }

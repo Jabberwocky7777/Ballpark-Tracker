@@ -80,6 +80,31 @@ export function getPublicPhotosForVisit(visitId: string): PhotoSummary[] {
     .all();
 }
 
+/**
+ * One published photo per venue, for the map's hover preview.
+ *
+ * Prefers a photo explicitly marked as the hero. Returns a map of venue id to
+ * photo id so the dashboard does one query rather than thirty-five.
+ */
+export function getPublicHeroPhotoByVenue(): Map<string, string> {
+  const rows = getDb()
+    .select({
+      venueId: schema.photos.venueId,
+      id: schema.photos.id,
+      isHero: schema.photos.isHero,
+    })
+    .from(schema.photos)
+    .where(eq(schema.photos.isPublic, 1))
+    .orderBy(desc(schema.photos.isHero), asc(schema.photos.createdAt))
+    .all();
+
+  const out = new Map<string, string>();
+  for (const r of rows) {
+    if (r.venueId && !out.has(r.venueId)) out.set(r.venueId, r.id);
+  }
+  return out;
+}
+
 export interface PhotoSummary {
   id: string;
   caption: string | null;

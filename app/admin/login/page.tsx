@@ -53,13 +53,13 @@ export default async function LoginPage({
 
   return (
     <main className="pt-10">
-      <h1 className="display text-[26px] leading-tight text-chalk">Sign in</h1>
-      <p className="mt-2 text-[14px] text-chalk-muted">
+      <h1 className="display text-[26px] leading-tight text-ink">Sign in</h1>
+      <p className="mt-2 text-[14px] text-muted">
         This is the filing side. The public site needs no sign in.
       </p>
 
       <form action={signIn} className="mt-7">
-        <label htmlFor="password" className="label text-chalk-dim">
+        <label htmlFor="password" className="label text-muted">
           Password
         </label>
         <input
@@ -69,7 +69,7 @@ export default async function LoginPage({
           autoComplete="current-password"
           autoFocus
           required
-          className="mt-2 w-full border border-ink-line bg-ink-panel px-3 py-2.5 text-[15px] text-chalk outline-none focus:border-accent"
+          className="mt-2 w-full border border-paper-line bg-card px-3 py-2.5 text-[15px] text-ink outline-none focus:border-accent"
         />
 
         {error && (

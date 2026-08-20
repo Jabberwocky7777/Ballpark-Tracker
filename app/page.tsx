@@ -2,7 +2,13 @@ import Link from "next/link";
 import { UsMap, type MapPin } from "@/components/UsMap";
 import { Fingerprint } from "@/components/Fingerprint";
 import { computeProgress } from "@/lib/progress";
-import { getFranchises, getPublicVisits, getTenancies, getVenues } from "@/lib/db/queries";
+import {
+  getFranchises,
+  getPublicHeroPhotoByVenue,
+  getPublicVisits,
+  getTenancies,
+  getVenues,
+} from "@/lib/db/queries";
 import { notYetBlurbs } from "@/lib/data/blurbs";
 import { mapGeometry, projectVenue, separatePins, MAP_WIDTH, MAP_HEIGHT } from "@/lib/map";
 import type { ParkState } from "@/lib/types";
@@ -25,6 +31,7 @@ export default function HomePage() {
   });
 
   const geo = mapGeometry();
+  const heroByVenue = getPublicHeroPhotoByVenue();
 
   // Project first, then push apart anything that would render underneath a
   // neighbour -- several parks are within a pin's width of each other.
@@ -52,6 +59,7 @@ export default function HomePage() {
         fingerprint: vp.venue.fingerprint,
         blurb: notYetBlurbs[vp.venue.id] ?? "Not yet.",
         newParkFor: vp.newParkFor?.name ?? null,
+        heroPhotoId: heroByVenue.get(vp.venue.id) ?? null,
       } satisfies MapPin;
     })
     .filter((p): p is MapPin => p !== null);
@@ -71,7 +79,7 @@ export default function HomePage() {
         />
       </div>
 
-      <div className="mt-3 overflow-hidden border border-ink-line">
+      <div className="mt-3 overflow-hidden rounded-[3px] border border-paper-line">
         <UsMap
           width={MAP_WIDTH}
           height={MAP_HEIGHT}
@@ -84,21 +92,21 @@ export default function HomePage() {
       <Legend />
 
       <section className="mt-9">
-        <h2 className="label text-chalk-dim">Lately</h2>
+        <h2 className="label text-muted">Lately</h2>
         {recent.length === 0 ? (
-          <p className="mt-3 text-[14px] text-chalk-muted">
+          <p className="mt-3 text-[14px] text-muted">
             Nothing yet. The first park goes here.
           </p>
         ) : (
-          <ul className="mt-3 divide-y divide-ink-line border-y border-ink-line">
+          <ul className="mt-3 divide-y divide-paper-line border-y border-paper-line">
             {recent.map((v) => {
               const venue = venueById.get(v.venueId);
               if (!venue) return null;
               return (
                 <li key={v.id}>
                   <Link href={`/park/${venue.slug}`} className="flex items-baseline gap-3 py-3">
-                    <span className="display flex-1 text-[17px] text-chalk">{venue.name}</span>
-                    <span className="tabular text-[12px] text-chalk-dim">{v.visitDate}</span>
+                    <span className="display flex-1 text-[15px]">{venue.name}</span>
+                    <span className="tabular text-[12px] text-muted">{v.visitDate}</span>
                   </Link>
                 </li>
               );
@@ -122,13 +130,18 @@ function Counter({
   note?: string;
 }) {
   return (
-    <div className="rounded-[4px] bg-ink-panel px-4 py-4 sm:px-5 sm:py-5">
+    <div className="card px-4 py-4 sm:px-5 sm:py-5">
       <p className="tabular leading-none">
-        <span className="text-[34px] font-bold text-chalk sm:text-[44px]">{value}</span>
-        <span className="text-[22px] text-chalk-dim sm:text-[28px]">/{total}</span>
+        <span className="text-[34px] font-bold text-ink sm:text-[44px]">{value}</span>
+        <span className="text-[22px] text-muted sm:text-[28px]">/{total}</span>
       </p>
-      <p className="label mt-2 text-chalk-muted">{label}</p>
-      {note && <p className="mt-0.5 text-[11px] text-chalk-dim">{note}</p>}
+      <p className="label mt-2 text-ink">{label}</p>
+      {note && (
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted">
+          <span className="inline-block h-2 w-2 rounded-full bg-gold" aria-hidden="true" />
+          {note}
+        </p>
+      )}
     </div>
   );
 }
@@ -146,7 +159,7 @@ function Legend() {
       {LEGEND.map((l) => (
         <li key={l.state} className="flex items-center gap-1.5">
           <Fingerprint index={l.fp} state={l.state} size={16} />
-          <span className="label text-chalk-dim">{l.text}</span>
+          <span className="label text-muted">{l.text}</span>
         </li>
       ))}
     </ul>

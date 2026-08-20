@@ -5,17 +5,17 @@ import { Fingerprint } from "@/components/Fingerprint";
 import { computeProgress } from "@/lib/progress";
 import {
   getFranchises,
+  getPublicPhotosForVisit,
+  getPublicVisits,
+  getPublicVisitsForVenue,
   getTenancies,
   getTrips,
   getVenueBySlug,
   getVenueNameOn,
   getVenues,
-  getPublicPhotosForVisit,
-  getPublicVisits,
-  getPublicVisitsForVenue,
 } from "@/lib/db/queries";
-import { notYetBlurbs } from "@/lib/data/blurbs";
 import type { PhotoSummary } from "@/lib/db/queries";
+import { notYetBlurbs } from "@/lib/data/blurbs";
 
 /**
  * Rendered per request rather than prerendered. The two display names arrive as
@@ -62,16 +62,16 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
   const visits = getPublicVisitsForVenue(venue.id);
 
   return (
-    <main className="-mx-5 min-h-screen bg-paper px-5 pb-10 pt-6 text-paper-ink">
-      <Link href="/" className="label text-paper-muted hover:text-paper-ink">
+    <main className="pt-6">
+      <Link href="/" className="label text-muted hover:text-accent">
         ← Map
       </Link>
 
       <header className="mt-5 flex items-start gap-3">
-        <Fingerprint index={venue.fingerprint} state={vp.state} size={34} surface="paper" className="mt-1 shrink-0" />
+        <Fingerprint index={venue.fingerprint} state={vp.state} size={36} className="mt-1 shrink-0" />
         <div className="min-w-0">
-          <h1 className="display text-[30px] leading-[1.1]">{venue.name}</h1>
-          <p className="tabular mt-1 text-[12px] text-paper-muted">
+          <h1 className="display text-[26px] sm:text-[32px]">{venue.name}</h1>
+          <p className="tabular mt-1 text-[12px] text-muted">
             {venue.city}, {venue.state} · opened {venue.openedYear}
             {venue.closedYear ? ` · closed ${venue.closedYear}` : ""}
           </p>
@@ -79,17 +79,15 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
       </header>
 
       {vp.newParkFor && (
-        <p className="mt-4 border-l-2 border-paper-muted/40 pl-3 text-[13px] text-paper-muted">
+        <p className="mt-4 flex items-start gap-2 border-l-2 border-gold pl-3 text-[13px] text-muted">
           New park since your visit — the {vp.newParkFor.name} play here now.
         </p>
       )}
 
       {!vp.visited && (
         <section className="mt-6">
-          <p className="label text-paper-muted">Not yet</p>
-          <p className="mt-2 text-[15px] text-paper-ink-soft">
-            {notYetBlurbs[venue.id] ?? "Not yet."}
-          </p>
+          <p className="label text-muted">Not yet</p>
+          <p className="mt-2 text-[15px] text-ink-body">{notYetBlurbs[venue.id] ?? "Not yet."}</p>
         </section>
       )}
 
@@ -100,40 +98,41 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
         const nameThatDay = getVenueNameOn(venue.id, visit.visitDate);
 
         return (
-          <article key={visit.id} className="mt-8 border-t border-paper-ink/10 pt-6">
+          <article key={visit.id} className="mt-8 border-t border-paper-line pt-6">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="tabular text-[13px]">{visit.visitDate}</p>
-              {trip && (
-                <p className="label text-paper-muted">{trip.title}</p>
-              )}
+              <p className="tabular text-[13px] text-ink">{visit.visitDate}</p>
+              {trip && <p className="label text-muted">{trip.title}</p>}
             </div>
 
             {nameThatDay !== venue.name && (
-              <p className="mt-1 text-[12px] italic text-paper-muted">
-                Called {nameThatDay} when we went.
-              </p>
+              <p className="mt-1 text-[12px] text-muted">Called {nameThatDay} when we went.</p>
             )}
 
             {!visit.attendedGame ? (
-              <p className="mt-3 text-[15px] text-paper-ink-soft">
+              <p className="mt-3 text-[15px] text-ink-body">
                 Saw the building, didn&apos;t get in. Doesn&apos;t count toward either total.
               </p>
             ) : (
-              <>
+              /* Same white card treatment as the counters, deliberately -- this
+                 was a dark holdout and is now unified. */
+              <dl className="card mt-4 grid grid-cols-2 gap-x-4 gap-y-3 p-4 sm:grid-cols-4">
                 {home && away && (
-                  <p className="tabular mt-3 text-[17px]">
-                    {away.abbrev} {visit.awayScore} — {visit.homeScore} {home.abbrev}
-                  </p>
+                  <Stat
+                    k="Result"
+                    v={`${away.abbrev} ${visit.awayScore} — ${visit.homeScore} ${home.abbrev}`}
+                  />
                 )}
-                <dl className="tabular mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
-                  {visit.seatSection && (
-                    <Row k="Seat" v={`${visit.seatSection}${visit.seatRow && visit.seatRow !== "—" ? `, row ${visit.seatRow}` : ""}`} />
-                  )}
-                  {visit.weatherTempF !== undefined && (
-                    <Row k="Weather" v={`${visit.weatherTempF}°F, ${visit.weatherDesc ?? ""}`} />
-                  )}
-                </dl>
-              </>
+                {visit.seatSection && (
+                  <Stat
+                    k="Seat"
+                    v={`${visit.seatSection}${visit.seatRow && visit.seatRow !== "—" ? `, row ${visit.seatRow}` : ""}`}
+                  />
+                )}
+                {visit.weatherTempF !== undefined && (
+                  <Stat k="Weather" v={`${visit.weatherTempF}°F`} />
+                )}
+                {visit.weatherDesc && <Stat k="Sky" v={visit.weatherDesc} />}
+              </dl>
             )}
 
             <PhotoGrid photos={getPublicPhotosForVisit(visit.id)} />
@@ -151,11 +150,11 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
   );
 }
 
-function Row({ k, v }: { k: string; v: string }) {
+function Stat({ k, v }: { k: string; v: string }) {
   return (
     <div>
-      <dt className="label text-paper-muted">{k}</dt>
-      <dd className="mt-0.5">{v}</dd>
+      <dt className="label text-muted">{k}</dt>
+      <dd className="tabular mt-1 text-[14px] text-ink">{v}</dd>
     </div>
   );
 }
@@ -167,7 +166,7 @@ function Row({ k, v }: { k: string; v: string }) {
  */
 function PhotoGrid({ photos }: { photos: PhotoSummary[] }) {
   if (photos.length === 0) {
-    return <p className="mt-4 text-[13px] text-paper-muted">No photos published from this one yet.</p>;
+    return <p className="mt-4 text-[13px] text-muted">No photos published from this one yet.</p>;
   }
   return (
     <div className="mt-5 grid grid-cols-3 gap-1.5">
@@ -177,7 +176,7 @@ function PhotoGrid({ photos }: { photos: PhotoSummary[] }) {
           src={`/api/photo/${p.id}/thumb`}
           alt={p.caption ?? ""}
           loading="lazy"
-          className="aspect-square w-full bg-paper-ink/8 object-cover"
+          className="aspect-square w-full bg-paper-inset object-cover"
         />
       ))}
     </div>
@@ -188,8 +187,8 @@ function Voice({ name, text }: { name: string; text?: string }) {
   if (!text) return null;
   return (
     <div>
-      <p className="label border-b border-paper-ink/20 pb-1 text-paper-muted">{name}</p>
-      <p className="mt-2 text-[13px] leading-relaxed text-paper-ink-soft">{text}</p>
+      <p className="label border-b border-paper-line pb-1 text-muted">{name}</p>
+      <p className="mt-2 text-[13px] leading-relaxed text-ink-body">{text}</p>
     </div>
   );
 }

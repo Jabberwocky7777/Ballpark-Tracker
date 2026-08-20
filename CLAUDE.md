@@ -170,34 +170,38 @@ Considered and explicitly cut. Do not reintroduce, even if they seem like a natu
 
 ### Design tokens
 
-Full rationale in `docs/look-and-feel.md`. The short version:
+Full rationale in `docs/look-and-feel.md`. One warm cream surface throughout — there is no dark screen any more, and no light/dark split between the map and the park pages. The map's inset well is the only surface variation.
 
 ```
---ink             #16213a   primary dark surface
---ink-deep        #101a30   map well
---ink-panel       #1c2947   cards on ink
---ink-line        #26324f   hairlines on ink
---chalk           #f4f5f2   text/fill on dark
---chalk-muted     #9aa2b8   secondary on dark
---chalk-dim       #5b647c   tertiary on dark
---paper           #f4f5f2   light surface (park pages, grids)
---paper-ink       #16213a   text on paper
---paper-muted     #7b8060   secondary on paper
---accent          #e0713f   "done" — used nowhere else
+--ink             #0f1b2e   headings, pin outlines, primary dark text
+--ink-body        #33372a   body copy and notes
+--paper           #f3efe4   page and card background
+--paper-inset     #ece4d0   the map's inset well
+--paper-line      #d9d2b8   borders, dividers, card outlines
+--muted           #8a7a52   secondary text, labels, links
+--not-done-stroke #a89a6e   hollow pin stroke
+--accent          #e0713f   "done" — solid pin fill and the 2px card top bar, nothing else
 --accent-hover    #c65a2a
---not-done-stroke #aeb4c2
+--gold            #d9a441   ONLY the asterisk dot
+white             #ffffff   elevated cards on paper
 ```
 
-Three fonts, no more: **Instrument Serif** (display — wordmark, park names, page titles, 22px+), **Public Sans** (body, 12–15px), **Space Grotesk** with `tabular-nums` (counters, dates, scores, seats, any stat). Self-hosted. Avoid Inter, Roboto, Arial, Fraunces, collegiate block letters, broadcast italics.
+**Two accents total.** Orange means done, gold means the asterisk caveat. Never a third. Do not reintroduce a second near-black or a second muted brown — those were deliberately collapsed into one token each.
 
-**Pin states are shape-coded, never color-only** — they must stay distinguishable in grayscale:
+Three fonts: **Oswald** 600/700, uppercase and tracked (wordmark, park names, page titles, section labels — it reads as scoreboard rather than generic app), **Public Sans** (body), **Space Grotesk** with `tabular-nums` (counters, dates, scores, seats).
 
-1. Done — fingerprint outline filled `--accent`, thin `--chalk` stroke
-2. Done + asterisk — same, plus a small `--chalk` dot at top-right. Quiet, not a badge.
-3. Not done — outline only, `--not-done-stroke`, transparent fill, ~2.5px
+Avoid Inter, Roboto, Arial, Fraunces, collegiate block letters, and MLB's trademarked navy/red palette.
+
+**Never use team logos or wordmarks anywhere.** They are trademarked regardless of personal or non-commercial use. The pin shapes are original stylized outlines, not traced from any single real park and not text badges — both of those were tried and reverted.
+
+**Pin states are shape-coded, never colour-only** — they must stay distinguishable in greyscale:
+
+1. Done — outline filled `--accent`, `--ink` stroke
+2. Done + asterisk — same, plus a small solid `--gold` dot at top-right
+3. Not done — outline only, `--not-done-stroke`, transparent fill, ~2px
 4. Temporary venue — hollow outline, dashed stroke
 
-The park-fingerprint silhouette (each park's outfield wall outline) is the signature asset. Trace real outlines normalized to a common bounding box — do not generate them procedurally.
+**Hover preview:** hovering a pin shows a small card with an image slot and the park name. The image comes from the couple's own published photos. **Never scrape or hot-link third-party ballpark photos** — aerial-photo directories are copyrighted. The slot stays empty until they upload something.
 
 Accessibility is non-negotiable: visible keyboard focus on every interactive element, `prefers-reduced-motion` respected, and layouts that survive missing or private photos without holes.
 
