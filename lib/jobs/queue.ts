@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, lt } from "drizzle-orm";
+import { and, asc, count, eq, lt } from "drizzle-orm";
 import { getDb, schema } from "../db/index.ts";
 
 /**
@@ -107,6 +107,12 @@ export function requeueStranded(): number {
   return stranded.length;
 }
 
+/** Counted in SQLite rather than by loading every row and measuring the array. */
 export function pendingCount(): number {
-  return getDb().select().from(schema.jobs).where(eq(schema.jobs.status, "pending")).all().length;
+  const row = getDb()
+    .select({ n: count() })
+    .from(schema.jobs)
+    .where(eq(schema.jobs.status, "pending"))
+    .get();
+  return row?.n ?? 0;
 }

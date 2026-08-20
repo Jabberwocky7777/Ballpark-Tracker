@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "../db/index.ts";
@@ -67,6 +67,36 @@ export interface IngestOptions {
   needsReview?: boolean;
 }
 
+/**
+ * Writes the original, atomically.
+ *
+ * A plain write with the `wx` flag looks like it enforces write-once, and it
+ * does -- but it leaves a partial file behind if the process dies mid-write,
+ * and the next run sees that file, believes the photo is already stored, and
+ * writes a database row pointing at truncated bytes. Silently. For the one
+ * category of data in this project that cannot be regenerated.
+ *
+ * So: write a temp file in the same directory, then rename it into place.
+ * Rename is atomic, which means the destination either does not exist or holds
+ * the complete file, never anything in between.
+ *
+ * The rename does replace an existing file, and that is deliberate rather than
+ * a hole in the immutability rule. The path is the content hash, so the only
+ * thing that can be at that path is either these exact bytes or the wreckage
+ * of an interrupted write, and healing the second case costs nothing.
+ */
+async function storeOriginal(target: string, buffer: Buffer): Promise<void> {
+  const temp = `${target}.${randomBytes(6).toString("hex")}.part`;
+  try {
+    await writeFile(temp, buffer, { flag: "wx" });
+    await rename(temp, target);
+  } catch (err) {
+    // Never leave the scratch file behind, whatever went wrong.
+    await rm(temp, { force: true }).catch(() => {});
+    throw err;
+  }
+}
+
 export async function ingestPhoto(options: IngestOptions): Promise<IngestReport> {
   const { buffer, filename, uploadedBy } = options;
 
@@ -117,15 +147,9 @@ export async function ingestPhoto(options: IngestOptions): Promise<IngestReport>
   const target = join(ensureDir(originalsDir()), relative);
   try {
     await mkdir(dirname(target), { recursive: true });
-    // "wx" fails if it exists. Originals are immutable; the only path that
-    // writes over one is a bug, and it must not be silent.
-    await writeFile(target, buffer, { flag: "wx" });
+    await storeOriginal(target, buffer);
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "EEXIST") {
-      return { ...base, reason: `could not store the original: ${(err as Error).message}` };
-    }
-    // Same hash, so the same bytes: an original left behind by a run that died
-    // before writing its row. Keep the file, carry on and write the row.
+    return { ...base, reason: `could not store the original: ${(err as Error).message}` };
   }
 
   // --- what the file knows about itself ----------------------------------

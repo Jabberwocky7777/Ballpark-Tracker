@@ -5,7 +5,7 @@ import { generateDerivatives } from "../ingest/derivatives.ts";
 import { sniffImage, type ImageFormat } from "../ingest/magic.ts";
 import { derivedDir, ensureDir, originalsDir } from "../ingest/paths.ts";
 import { resolveWithinRoot } from "../photo-path.ts";
-import { claimNext, markDone, markFailed, requeueStranded, type Job } from "./queue.ts";
+import { claimNext, markDone, markFailed, MAX_ATTEMPTS, requeueStranded } from "./queue.ts";
 
 /**
  * One in-process worker, polling. No Redis, no second container.
@@ -56,9 +56,13 @@ export async function drainOne(): Promise<boolean> {
   const job = claimNext();
   if (!job) return false;
 
-  const handler = HANDLERS[job.kind];
+  // hasOwn, not a bare lookup: `HANDLERS["constructor"]` finds Object's own
+  // constructor and would be called as though it were a job handler.
+  const handler = Object.hasOwn(HANDLERS, job.kind) ? HANDLERS[job.kind] : null;
   if (!handler) {
-    markFailed(job.id, Number.MAX_SAFE_INTEGER, `unknown job kind: ${job.kind}`);
+    // Retrying a job nothing can run just fails it twice more, so it is parked
+    // on the first attempt.
+    markFailed(job.id, MAX_ATTEMPTS, `unknown job kind: ${job.kind}`);
     return true;
   }
 

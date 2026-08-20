@@ -33,7 +33,7 @@ Built and verified end to end against the running dev server.
 | Piece | Where |
 |---|---|
 | Magic-byte sniffing | `lib/ingest/magic.ts` — extension is never trusted |
-| Content-addressed storage | `lib/ingest/storage-path.ts`, write-once with `wx` |
+| Content-addressed storage | `lib/ingest/storage-path.ts`, temp file + atomic rename |
 | EXIF read | `lib/ingest/exif.ts` — never throws; no metadata is ordinary |
 | Decoder chain | `lib/ingest/decode.ts` — sharp → heic-convert → pillow-heif |
 | Derivatives | `lib/ingest/derivatives.ts` — 640/1800 WebP, EXIF stripped |

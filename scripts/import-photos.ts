@@ -32,7 +32,7 @@ import {
 } from "../lib/ingest/assign.ts";
 import { drainAll } from "../lib/jobs/worker.ts";
 import { getDb, schema } from "../lib/db/index.ts";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 const IMAGE_EXT = new Set([".heic", ".heif", ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp"]);
 
@@ -135,9 +135,21 @@ if (dryRun) process.exit(0);
 // the upload endpoint: a photo taken on the concourse with no GPS lock is
 // unmatchable on its own but obvious in the company of the twenty around it.
 if (stored.length > 1) {
+  // One query for the whole batch. The timestamps were resolved during ingest;
+  // this reads them back rather than re-deriving them.
+  const ids = stored.map((r) => r.photoId as string);
+  const takenUtc = new Map(
+    getDb()
+      .select({ id: schema.photos.id, takenUtc: schema.photos.takenUtc })
+      .from(schema.photos)
+      .where(inArray(schema.photos.id, ids))
+      .all()
+      .map((row) => [row.id, row.takenUtc]),
+  );
+
   const photos: SessionPhoto[] = stored.map((r) => ({
     id: r.photoId as string,
-    takenUtc: takenUtcOf(r.photoId as string),
+    takenUtc: takenUtc.get(r.photoId as string) ?? null,
     assignment: {
       venueId: r.venueId,
       visitId: null,
@@ -146,10 +158,14 @@ if (stored.length > 1) {
     } as Assignment,
   }));
 
-  const promoted = propagateSessionMatches(photos).filter((p, i) => {
-    const before = photos[i];
-    return p.assignment.venueId !== before.assignment.venueId;
-  });
+  // Paired by id rather than by position. propagateSessionMatches happens to
+  // preserve order, but writing rows to the database on that assumption is
+  // the kind of coupling that files a photo under the wrong park the day it
+  // stops being true.
+  const before = new Map(photos.map((p) => [p.id, p.assignment.venueId]));
+  const promoted = propagateSessionMatches(photos).filter(
+    (p) => p.assignment.venueId !== before.get(p.id),
+  );
 
   const db = getDb();
   for (const photo of promoted) {
@@ -163,15 +179,6 @@ if (stored.length > 1) {
     console.log(`\n${promoted.length} photo(s) matched by the company they were taken in.`);
     console.log("All of them are suggestions -- confirm them in the queue.");
   }
-}
-
-function takenUtcOf(photoId: string): string | null {
-  const row = getDb()
-    .select({ takenUtc: schema.photos.takenUtc })
-    .from(schema.photos)
-    .where(eq(schema.photos.id, photoId))
-    .get();
-  return row?.takenUtc ?? null;
 }
 
 // --- derivatives -------------------------------------------------------------
