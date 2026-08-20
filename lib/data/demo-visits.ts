@@ -9,8 +9,10 @@ import type { Trip, Visit } from "../types";
  *   - ordinary permanent-park visits (most of these)
  *   - a temporary venue: Sutter Health Park, ballpark counts, Athletics don't
  *   - a building seen with no game attended: Dodger Stadium
- *   - two real franchise moves, so the quiet asterisk actually appears:
- *     Turner Field -> Truist Park, and Globe Life Park -> Globe Life Field
+ *
+ * It no longer demonstrates the quiet asterisk. That needed a visit to a park a
+ * franchise has since left, and the parks that closed before 2020 are out of
+ * the seed now. The rule itself is unchanged and still covered by tests.
  */
 
 export const demoTrips: Trip[] = [
@@ -66,21 +68,6 @@ export const demoVisits: Visit[] = [
     seatSection: "14", seatRow: "H", weatherTempF: 91, weatherDesc: "Hot, still",
     notesUserA: "Every park built since 1992 is trying to be this one. The warehouse does all the work.",
     notesUserB: "Eutaw Street before the game is the best pre-game anywhere.",
-    isPublic: true,
-  },
-  {
-    id: "v-turner", venueId: "turner", tripId: null, visitDate: "2015-07-25",
-    attendedGame: true, homeTeamId: "atl", awayTeamId: "phi", homeScore: 3, awayScore: 2,
-    seatSection: "216", seatRow: "4", weatherTempF: 94, weatherDesc: "Brutal, no shade",
-    notesUserA: "Long before we were doing this properly. Braves moved out two years later, so this one is a bit of a time capsule.",
-    notesUserB: "I remember the heat more than the game.",
-    isPublic: true,
-  },
-  {
-    id: "v-globelifepark", venueId: "globelifepark", tripId: null, visitDate: "2018-09-02",
-    attendedGame: true, homeTeamId: "tex", awayTeamId: "min", homeScore: 5, awayScore: 6,
-    seatSection: "32", seatRow: "18", weatherTempF: 99, weatherDesc: "Relentless",
-    notesUserA: "They built the new one across the street with a roof, and having sat through this, I understand exactly why.",
     isPublic: true,
   },
   {

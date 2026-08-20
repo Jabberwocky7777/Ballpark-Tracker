@@ -217,23 +217,27 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
           Desktop only -- there is no hover on a phone, which is what the bottom
           sheet is for. */}
       {hovered && (() => {
-        // Keep the card inside the map. Boston and Seattle sit close enough to
-        // the edges that a centred card hangs off the side, and a park at the
-        // top has no room above it, so it flips underneath instead.
-        const halfCardPct = ((CARD_W / 2) / width) * 100;
+        // The card opens away from the nearest edge rather than being centred
+        // and clamped. Centring put the west-coast parks' cards off the left of
+        // the map entirely; anchoring the near edge to the pin means the card
+        // always grows into the space that exists.
         const xPct = (hovered.x / width) * 100;
-        const leftPct = Math.min(Math.max(xPct, halfCardPct), 100 - halfCardPct);
         const yPct = (hovered.y / height) * 100;
+
+        const side = xPct < 30 ? "right" : xPct > 70 ? "left" : "centre";
+        const shiftX =
+          side === "right" ? "-14px" : side === "left" ? "calc(-100% + 14px)" : "-50%";
+        // A park near the top has no room above it, so the card drops below.
         const below = yPct < 34;
 
         return (
           <div
-            className="pointer-events-none absolute z-30 hidden -translate-x-1/2 sm:block"
+            className="pointer-events-none absolute z-30 hidden sm:block"
             style={{
               width: CARD_W,
-              left: `${leftPct}%`,
+              left: `${xPct}%`,
               top: `${yPct}%`,
-              transform: `translateX(-50%) translateY(${below ? "8px" : "calc(-100% - 14px)"})`,
+              transform: `translateX(${shiftX}) translateY(${below ? "10px" : "calc(-100% - 14px)"})`,
             }}
           >
             <div className="overflow-hidden rounded-[3px] border border-paper-line bg-card shadow-md">

@@ -59,8 +59,6 @@ export const venues: Venue[] = [
 
   // --- Former parks. They stay on the board once visited, which is how a
   // --- moved franchise keeps its check while its new park is asterisked.
-  { id: "turner", slug: "turner-field", name: "Turner Field", city: "Atlanta", state: "GA", lat: 33.7345, lng: -84.3897, timezone: "America/New_York", openedYear: 1997, closedYear: 2016, fingerprint: 2 },
-  { id: "globelifepark", slug: "globe-life-park", name: "Globe Life Park in Arlington", city: "Arlington", state: "TX", lat: 32.7513, lng: -97.0829, timezone: "America/Chicago", openedYear: 1994, closedYear: 2019, fingerprint: 5 },
   { id: "coliseum", slug: "oakland-coliseum", name: "Oakland Coliseum", city: "Oakland", state: "CA", lat: 37.7516, lng: -122.2005, timezone: "America/Los_Angeles", openedYear: 1966, closedYear: 2024, fingerprint: 1 },
 ];
 

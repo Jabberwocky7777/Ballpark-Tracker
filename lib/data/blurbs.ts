@@ -38,7 +38,5 @@ export const notYetBlurbs: Record<string, string> = {
   oracle: "McCovey Cove, the kayaks waiting for a splash hit, and fog in June.",
   steinbrenner: "A spring training park that hosted a full major league season.",
   vegas: "Not built yet. The Athletics move in for 2028.",
-  turner: "The Braves left after 2016. It's a college football stadium now.",
-  globelifepark: "The Rangers moved across the street in 2020. This one had no roof, in Texas.",
   coliseum: "The last multi-purpose concrete bowl. The Athletics left after 2024.",
 };

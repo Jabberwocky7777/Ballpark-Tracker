@@ -197,13 +197,6 @@ export const referencePhotos: Record<string, ReferencePhoto> = {
     licenceUrl: "https://creativecommons.org/licenses/by-sa/3.0",
     sourceUrl: "https://commons.wikimedia.org/wiki/File:SFPan.jpg",
   },
-  "turner": {
-    file: "/img/parks/turner.webp",
-    author: "Zpb52",
-    licence: "CC BY-SA 3.0",
-    licenceUrl: "https://creativecommons.org/licenses/by-sa/3.0",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Turner_Field_2013.jpg",
-  },
   "globelife": {
     file: "/img/parks/globelife.webp",
     author: "Ivansevil",
@@ -217,13 +210,6 @@ export const referencePhotos: Record<string, ReferencePhoto> = {
     licence: "CC0",
     licenceUrl: "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
     sourceUrl: "https://commons.wikimedia.org/wiki/File:4th_of_July_Colorado_Rockies_-_Arizona_Diamondbacks_game,_Coors_Field,_Denver,_2009.jpg",
-  },
-  "globelifepark": {
-    file: "/img/parks/globelifepark.webp",
-    author: "David Herrera (dherrera_96) from Albuquerque, NM, Bernalillo",
-    licence: "CC BY 2.0",
-    licenceUrl: "https://creativecommons.org/licenses/by/2.0",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:AmeriQuest_Field,_home_of_the_Texas_Rangers.jpg",
   },
   "sutter": {
     file: "/img/parks/sutter.webp",

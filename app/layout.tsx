@@ -18,7 +18,12 @@ export const metadata: Metadata = {
   description: "Every MLB ballpark, one game at a time.",
 };
 
+/** Read per request so it can be changed in the app settings without a rebuild. */
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const footerNote = process.env.FOOTER_NOTE ?? "Kept by two people";
+
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${tabular.variable}`}>
       <body>
@@ -35,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           {children}
           <footer className="label mt-12 flex items-baseline justify-between border-t border-paper-line py-6 text-muted">
-            <span>Kept by two people since 2015</span>
+            <span>{footerNote}</span>
             <Link href="/credits" className="hover:text-accent">
               Photo credits
             </Link>

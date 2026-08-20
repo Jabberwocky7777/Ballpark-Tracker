@@ -113,3 +113,40 @@ describe("schema guarantees", () => {
     );
   });
 });
+
+describe("seed reconciliation", () => {
+  test("a venue nobody visited can be retired, one with a visit cannot", () => {
+    // Two retired parks, one of which somebody actually went to.
+    sqlite
+      .prepare(
+        "insert into venues (id,slug,name,city,state,lat,lng,timezone,opened_year,fingerprint) values ('gone','gone','Gone','C','ST',40,-80,'America/New_York',1990,0)",
+      )
+      .run();
+    sqlite
+      .prepare(
+        "insert into venues (id,slug,name,city,state,lat,lng,timezone,opened_year,fingerprint) values ('kept','kept','Kept','C','ST',40,-80,'America/New_York',1990,0)",
+      )
+      .run();
+    sqlite
+      .prepare("insert into visits (id,venue_id,visit_date,attended_game) values ('v-kept','kept','2015-07-25',1)")
+      .run();
+
+    // What seedReferenceData does: drop rows absent from the seed, unless a
+    // visit or photo points at them.
+    const referenced = new Set(
+      (sqlite.prepare("select venue_id from visits").all() as { venue_id: string }[]).map(
+        (r) => r.venue_id,
+      ),
+    );
+    const seeded = new Set(["v"]); // neither 'gone' nor 'kept' is in the seed
+    const stale = (sqlite.prepare("select id from venues").all() as { id: string }[])
+      .map((r) => r.id)
+      .filter((id) => !seeded.has(id) && !referenced.has(id));
+
+    assert.ok(stale.includes("gone"), "an unreferenced retired park should be removable");
+    assert.ok(
+      !stale.includes("kept"),
+      "a park with a visit must survive -- that record is theirs, not the seed's",
+    );
+  });
+});

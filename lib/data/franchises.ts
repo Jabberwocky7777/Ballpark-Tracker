@@ -67,9 +67,7 @@ export const tenancies: Tenancy[] = [
   { id: "t-ath-vegas", franchiseId: "ath", venueId: "vegas", startYear: 2028, endYear: null, isTemporary: false, isCurrent: false },
 
   { id: "t-sea", franchiseId: "sea", venueId: "tmobile", startYear: 1999, endYear: null, isTemporary: false, isCurrent: true },
-  { id: "t-tex-old", franchiseId: "tex", venueId: "globelifepark", startYear: 1994, endYear: 2019, isTemporary: false, isCurrent: false },
   { id: "t-tex", franchiseId: "tex", venueId: "globelife", startYear: 2020, endYear: null, isTemporary: false, isCurrent: true },
-  { id: "t-atl-turner", franchiseId: "atl", venueId: "turner", startYear: 1997, endYear: 2016, isTemporary: false, isCurrent: false },
   { id: "t-atl", franchiseId: "atl", venueId: "truist", startYear: 2017, endYear: null, isTemporary: false, isCurrent: true },
   { id: "t-mia", franchiseId: "mia", venueId: "loandepot", startYear: 2012, endYear: null, isTemporary: false, isCurrent: true },
   { id: "t-nym", franchiseId: "nym", venueId: "citi", startYear: 2009, endYear: null, isTemporary: false, isCurrent: true },
