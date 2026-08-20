@@ -43,6 +43,10 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=sha,format=short
+            # `latest` is what anyone typing a tag by hand will reach for, and
+            # an image without it fails to pull with a confusing "manifest
+            # unknown" rather than anything that names the real problem.
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push the app image
         uses: docker/build-push-action@v6
