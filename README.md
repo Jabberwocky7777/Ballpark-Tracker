@@ -46,7 +46,9 @@ npm test
 
 Docker container on TrueNAS SCALE via the Custom App wizard. See `docs/deploy.example.md`.
 
-The image contains no secrets. Every value arrives as runtime env. On boot the
+The image contains no secrets. Every value arrives as runtime env; the only one
+you must supply is `ADMIN_PASSWORD`, typed straight into the app's settings.
+On boot the
 container applies pending migrations and seeds the public reference data, both
 idempotent, so a restart is always safe and a fresh install needs no manual
 database step. `GET /api/health` reports whether the process is up and the

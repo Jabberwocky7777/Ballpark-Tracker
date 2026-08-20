@@ -3,6 +3,7 @@ import { verify } from "@node-rs/argon2";
 import { cookies, headers } from "next/headers";
 import { SESSION_COOKIE, verifySessionToken } from "./session";
 import { clientAddress } from "./host-gate";
+import { getAdminPasswordHash, getSessionSecret } from "./secrets";
 
 /** @node-rs/argon2 exports Algorithm as an ambient const enum, which cannot be
  *  referenced under isolatedModules. Argon2id is 2. */
@@ -15,7 +16,7 @@ const ARGON2ID = 2;
 
 /** A deliberately slow, constant-ish failure path. */
 export async function checkPassword(password: string): Promise<boolean> {
-  const stored = process.env.ADMIN_PASSWORD_HASH;
+  const stored = await getAdminPasswordHash();
   if (!stored) return false;
   try {
     return await verify(stored, password, { algorithm: ARGON2ID });
@@ -27,8 +28,7 @@ export async function checkPassword(password: string): Promise<boolean> {
 }
 
 export async function isAuthenticated(): Promise<boolean> {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret) return false;
+  const secret = getSessionSecret();
   const jar = await cookies();
   return verifySessionToken(jar.get(SESSION_COOKIE)?.value, secret);
 }

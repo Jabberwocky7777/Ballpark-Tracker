@@ -47,7 +47,7 @@ Storage — three host path mounts, each with **Enable ACL** checked:
 | `<POOL>/<MEDIA_DATASET>/Ballpark/originals` | `/photos/originals` |
 | `<POOL>/<MEDIA_DATASET>/Ballpark/derived` | `/photos/derived` |
 
-Environment — every variable from `.env.example`. `ADMIN_PASSWORD_HASH` and `SESSION_SECRET` are generated locally and pasted here; they exist nowhere else.
+Environment — see `.env.example`. The only one you must set is `ADMIN_PASSWORD`: type a password straight into the field and the app hashes it with argon2id at startup. `SESSION_SECRET` can stay empty; the app generates one on first boot and keeps it in `DATA_DIR`, so logins survive restarts and updates.
 
 ## 5. Reverse proxy
 

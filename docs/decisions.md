@@ -95,6 +95,21 @@ A full read-through against the plan, looking for bugs, dead code, and anything 
 
 ---
 
+## 2026-08-20 — Secrets you can type into a form
+
+The admin surface originally required an argon2id digest and a base64 key, both produced by a CLI. That is a bad trade for someone configuring this through a NAS web UI: two more chances to get it wrong, and redeploying on a new machine becomes a research project.
+
+- `ADMIN_PASSWORD` accepts a plaintext password and is hashed with argon2id once at startup, in memory. `ADMIN_PASSWORD_HASH` still wins when set.
+- `SESSION_SECRET` is optional. Unset, the app generates 32 random bytes on first boot and persists them to `DATA_DIR/session.key`. Persisting matters: a per-boot secret would sign everyone out on every restart and update, which reads as a bug.
+
+**The trade, stated plainly:** a plaintext password in env is readable by anyone who can open the app's config in the NAS UI or run `docker inspect`. For a two-person app already unreachable from the internet, behind a login throttle, that is an acceptable price for not needing a terminal. The hashed path remains for anyone who disagrees.
+
+Hashing a plaintext that already sits in env buys nothing cryptographically -- whoever reads the environment has the password. It is done anyway so there is one verification path, and because argon2's slowness still blunts online guessing.
+
+Tests for these run with `--conditions=react-server` so modules guarded by `server-only` are importable, the same way Next resolves them on the server.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.

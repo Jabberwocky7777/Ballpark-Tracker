@@ -10,6 +10,7 @@ import {
   throttleReset,
 } from "@/lib/auth";
 import { SESSION_COOKIE, createSessionToken, sessionCookieOptions } from "@/lib/session";
+import { getSessionSecret } from "@/lib/secrets";
 
 export const dynamic = "force-dynamic";
 
@@ -43,8 +44,7 @@ export default async function LoginPage({
     }
 
     throttleReset(key);
-    const secret = process.env.SESSION_SECRET;
-    if (!secret) redirect(`/admin/login?error=config`);
+    const secret = getSessionSecret();
 
     const jar = await cookies();
     jar.set(SESSION_COOKIE, createSessionToken({ secret }), sessionCookieOptions(await requestIsHttps()));
@@ -77,7 +77,7 @@ export default async function LoginPage({
             {error === "throttled"
               ? "Too many attempts. Wait fifteen minutes and try again."
               : error === "config"
-                ? "The server has no session secret set. Set SESSION_SECRET and restart."
+                ? "No admin password is set on the server. Add ADMIN_PASSWORD in the app's settings and restart it."
                 : "That password didn't work. Try again."}
           </p>
         )}
