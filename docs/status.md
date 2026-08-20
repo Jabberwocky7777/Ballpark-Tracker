@@ -113,6 +113,10 @@ uploaded can ever be seen.
   computes it (`gps-confident`, `session`, `date-only`) and the upload report
   shows it, but the column does not exist. Worth adding when the queue UI needs
   to explain itself.
+- **On a phone the Los Angeles pair is still hard to tap.** Nearest-centre hit
+  testing picks correctly, but at 375px the map is 333px wide and the two pins
+  sit 4px apart — closer than a fingertip can aim. Separating them further is
+  the only real fix and it costs accuracy everywhere, so it has not been done.
 - **Session clustering runs only in the CLI import**, not on upload. A batch
   uploaded through the browser gets tier matching but not the second pass. It
   belongs in the queue UI as a "match the rest of this evening" action.

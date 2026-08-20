@@ -16,6 +16,45 @@ export interface ProjectedVenue {
 
 
 /**
+ * The pin nearest a point, within a grab radius. Null when the point is not
+ * near anything.
+ *
+ * This is the whole of the map's hit testing, and it replaced a transparent
+ * circle on each pin. Those circles were fifteen units across while the
+ * crowded pairs sit ten units apart, so they covered each other and the click
+ * went to whichever pin was painted last: aiming at Angel Stadium selected
+ * Dodger Stadium, and Rate Field, Yankee Stadium and Nationals Park could not
+ * be selected at all.
+ *
+ * Nearest-centre gives every point on the map to exactly one pin -- the one it
+ * is closest to -- so two parks drawn almost on top of each other still own
+ * their own halves of the space between them.
+ *
+ * Ties are broken by id so the result cannot depend on array order, which is
+ * what paint order was doing wrong in the first place.
+ */
+export function nearestPin<T extends { id: string; x: number; y: number }>(
+  pins: readonly T[],
+  x: number,
+  y: number,
+  grabRadius: number,
+): T | null {
+  let best: T | null = null;
+  let bestDistance = Infinity;
+
+  for (const pin of pins) {
+    const d = Math.hypot(pin.x - x, pin.y - y);
+    if (d > grabRadius) continue;
+    if (d < bestDistance || (d === bestDistance && best !== null && pin.id < best.id)) {
+      bestDistance = d;
+      best = pin;
+    }
+  }
+
+  return best;
+}
+
+/**
  * Push overlapping pins apart.
  *
  * Kept deliberately gentle. San Francisco and Sacramento are about 120km apart,

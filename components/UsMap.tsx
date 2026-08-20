@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { fingerprintPath, fingerprintStyle } from "./Fingerprint";
 import type { ParkState } from "@/lib/types";
+import { nearestPin } from "@/lib/pins";
 
 export interface MapPin {
   id: string;
@@ -48,9 +50,6 @@ interface Props {
 }
 
 const PIN_W = 16;
-/** Invisible hover/click target. The pin outline alone is a fiddly thing to
- *  hit with a mouse, especially the hollow ones. */
-const HIT_R = 15;
 const PIN_H = (PIN_W * 26) / 24;
 /**
  * These shapes are blobs rather than teardrop pins, so they are centred on the
@@ -69,9 +68,43 @@ const STATE_LABEL: Record<ParkState, string> = {
   temporary: "not visited, temporary venue",
 };
 
+/**
+ * How far from a pin's centre the pointer still counts as aiming at it.
+ * Bounded so that clicking empty Nevada selects nothing, rather than the
+ * nearest park two states away.
+ */
+const GRAB_RADIUS = 26;
+
 export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props) {
   const [selected, setSelected] = useState<MapPin | null>(null);
   const [hovered, setHovered] = useState<MapPin | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const router = useRouter();
+
+  /**
+   * Pointer position to the pin it is aiming at. The choosing itself lives in
+   * lib/pins.ts with its tests; this only converts client pixels into viewBox
+   * units, since the map scales with the column width.
+   */
+  function pinNear(clientX: number, clientY: number): MapPin | null {
+    const svg = svgRef.current;
+    if (!svg) return null;
+
+    const rect = svg.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+
+    return nearestPin(
+      pins,
+      ((clientX - rect.left) / rect.width) * width,
+      ((clientY - rect.top) / rect.height) * height,
+      GRAB_RADIUS,
+    );
+  }
+
+  function activate(pin: MapPin) {
+    if (pin.parkState === "done") router.push(`/park/${pin.slug}`);
+    else setSelected(pin);
+  }
 
   // Done pins render last so they sit above the hollow ones where the
   // northeast gets crowded.
@@ -83,8 +116,16 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
   return (
     <div className="relative">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${width} ${height}`}
         className="block h-auto w-full"
+        style={{ cursor: hovered ? "pointer" : "default" }}
+        onPointerMove={(e) => setHovered(pinNear(e.clientX, e.clientY))}
+        onPointerLeave={() => setHovered(null)}
+        onClick={(e) => {
+          const pin = pinNear(e.clientX, e.clientY);
+          if (pin) activate(pin);
+        }}
         // Deliberately not role="img": that collapses the whole map into a
         // single image node and hides all 30-plus interactive pins from
         // assistive technology.
@@ -132,13 +173,6 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
           const label = `${pin.name}, ${pin.city} — ${STATE_LABEL[pin.parkState]}`;
           const shape = (
             <>
-              <circle
-                cx={PIN_W / 2}
-                cy={CENTRE_Y}
-                r={HIT_R}
-                fill="transparent"
-                stroke="none"
-              />
               <rect
                 className="pin-focus"
                 x={-3}
@@ -176,18 +210,20 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
             </>
           );
 
-          const hoverHandlers = {
-            onMouseEnter: () => setHovered(pin),
-            onMouseLeave: () => setHovered((h) => (h?.id === pin.id ? null : h)),
+          // Keyboard only. Pointer hit testing happens once, on the svg, by
+          // nearest centre -- so every pin here is transparent to the pointer
+          // and cannot take a click that belongs to its neighbour. Focus,
+          // Enter, the focus ring and the accessible name all still work:
+          // pointer-events has no bearing on any of them.
+          const keyboard = {
             onFocus: () => setHovered(pin),
             onBlur: () => setHovered((h) => (h?.id === pin.id ? null : h)),
+            pointerEvents: "none" as const,
           };
 
           return pin.parkState === "done" ? (
-            <Link key={pin.id} href={`/park/${pin.slug}`} aria-label={label}>
-              <g transform={`translate(${tx} ${ty})`} className="cursor-pointer" {...hoverHandlers}>
-                {shape}
-              </g>
+            <Link key={pin.id} href={`/park/${pin.slug}`} aria-label={label} {...keyboard}>
+              <g transform={`translate(${tx} ${ty})`}>{shape}</g>
             </Link>
           ) : (
             <g
@@ -196,20 +232,38 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
               role="button"
               tabIndex={0}
               aria-label={label}
-              className="cursor-pointer"
-              onClick={() => setSelected(pin)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   setSelected(pin);
                 }
               }}
-              {...hoverHandlers}
+              {...keyboard}
             >
               {shape}
             </g>
           );
         })}
+
+        {/* The true location of any pin that had to be nudged aside, drawn
+            last so it is not buried under the pin that moved. The tether line
+            underneath is hidden by the pin body at these distances, which made
+            the displacement silent: the map quietly showed a park a few miles
+            from where it is, with nothing to say so. This dot is the honest
+            bit -- the pin is approximate, the dot is exact. */}
+        {ordered
+          .filter((p) => p.nudged)
+          .map((p) => (
+            <circle
+              key={`a${p.id}`}
+              cx={p.anchorX}
+              cy={p.anchorY}
+              r={1.1}
+              fill="var(--color-ink)"
+              opacity={0.55}
+              pointerEvents="none"
+            />
+          ))}
       </svg>
 
       {/* Hover preview, positioned as a percentage of the map so it tracks the

@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { separatePins, type ProjectedVenue } from "./pins.ts";
+import { nearestPin, separatePins, type ProjectedVenue } from "./pins.ts";
 
 const pin = (id: string, x: number, y: number): ProjectedVenue => ({
   id,
@@ -101,5 +101,54 @@ describe("separatePins", () => {
     separatePins(input);
     assert.equal(input[0].x, 100);
     assert.equal(input[0].nudged, false);
+  });
+});
+
+describe("nearestPin", () => {
+  const dodger = pin("dodger", 94, 289);
+  const angel = pin("angel", 99.5, 297.3);
+  const la = [dodger, angel];
+
+  test("aiming at a pin selects that pin, not the one painted after it", () => {
+    // The reported bug: both parks carried a 15-unit target while sitting 10
+    // apart, so one of them could never be selected however carefully you
+    // aimed at it.
+    assert.equal(nearestPin(la, dodger.x, dodger.y, 26)?.id, "dodger");
+    assert.equal(nearestPin(la, angel.x, angel.y, 26)?.id, "angel");
+  });
+
+  test("the boundary between two pins falls exactly halfway", () => {
+    const midX = (dodger.x + angel.x) / 2;
+    const midY = (dodger.y + angel.y) / 2;
+    const towardsDodger = nearestPin(la, midX - 0.4, midY - 0.6, 26);
+    const towardsAngel = nearestPin(la, midX + 0.4, midY + 0.6, 26);
+    assert.equal(towardsDodger?.id, "dodger");
+    assert.equal(towardsAngel?.id, "angel");
+  });
+
+  test("empty ground selects nothing", () => {
+    assert.equal(nearestPin(la, 400, 150, 26), null);
+  });
+
+  test("the grab radius is a hard edge", () => {
+    const single = [pin("a", 100, 100)];
+    assert.equal(nearestPin(single, 100, 125.9, 26)?.id, "a");
+    assert.equal(nearestPin(single, 100, 126.1, 26), null);
+  });
+
+  test("array order cannot change the answer", () => {
+    const forwards = nearestPin([dodger, angel], 96.75, 293.15, 26);
+    const backwards = nearestPin([angel, dodger], 96.75, 293.15, 26);
+    assert.equal(forwards?.id, backwards?.id);
+  });
+
+  test("every pin on a crowded map selects itself", () => {
+    const pins = separatePins([
+      pin("a", 300, 300), pin("b", 300.4, 300.2), pin("c", 305, 302),
+      pin("d", 500, 200), pin("e", 250, 400), pin("f", 252, 401),
+    ]);
+    for (const p of pins) {
+      assert.equal(nearestPin(pins, p.x, p.y, 26)?.id, p.id, `${p.id} selected something else`);
+    }
   });
 });
