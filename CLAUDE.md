@@ -28,6 +28,16 @@ Seed data for MLB franchises and venues **is** public reference data and belongs
 
 ---
 
+## Workflow — do not push without being asked
+
+**Never `git push` unless Brendan explicitly asks for it in that message.** Commit freely; pushing is his call, every time.
+
+The loop is: he brings a tweak, it gets fixed and checked locally, he looks at it, and only then does it go to GitHub. A push triggers CI, publishes a new image, and turns a local experiment into something he has to redeploy — so it is his decision, not a step to tidy up at the end of a task.
+
+"Everything is committed and ready to push whenever you want it" is the correct way to finish. Asking "shall I push?" every time is not needed either; just stop at the commit.
+
+---
+
 ## What this is
 
 A self-hosted web app tracking one couple's mission to attend a game at every MLB ballpark. Two users. Public read-only site; private admin surface. Runs as a Docker container on TrueNAS SCALE, exposed at a subdomain via nginx-proxy-manager.
