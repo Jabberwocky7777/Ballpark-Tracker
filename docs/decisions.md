@@ -174,6 +174,26 @@ wrongly assigned one is invisible and quietly corrupts a park's gallery.
 
 ---
 
+## 2026-08-20 — `output: standalone` does not include `public/`
+
+The park photos were 404 in the container and fine in dev, for a week, because
+`next build --standalone` deliberately leaves `public/` out of its bundle and
+the Dockerfile only copied `.next/standalone`, `.next/static` and `drizzle`.
+`next dev` serves `public/` straight off the disk, so nothing local could ever
+show the fault.
+
+Reproduced by running the standalone server in the container's exact layout:
+the page returned 200 and every `/img/parks/*.webp` returned 404. One `COPY`
+line fixes it, and the same run afterwards returns `image/webp` with the right
+byte counts.
+
+The general shape is worth remembering: **a bug that only exists in the
+deployment layout cannot be found by testing the dev server**, however
+thoroughly. Anything served as a static file, added later, has this same
+failure mode.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.

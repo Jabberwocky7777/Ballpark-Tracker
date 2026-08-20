@@ -26,6 +26,9 @@ RUN npm ci
 # ---------------------------------------------------------------- build ------
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
+# .dockerignore is load-bearing here, not tidiness: it keeps /data out of the
+# build context. A local `npm run build` traces ./data into .next/standalone,
+# database and session key included, and this image is published publicly.
 COPY . .
 # Nothing here reads runtime config: every page that touches the database or
 # env is force-dynamic, so the build never needs a database or a secret.
@@ -72,6 +75,11 @@ COPY --from=builder --chown=app:app /app/.next/static ./.next/static
 # Migrations are .sql files; Next's tracer does not follow them, and
 # instrumentation.ts reads them from disk at boot.
 COPY --from=builder --chown=app:app /app/drizzle ./drizzle
+# The park reference photos, and anything else served as a static file.
+# `output: standalone` deliberately leaves public/ out of its bundle, so
+# without this line every /img/parks/*.webp is a 404 in the container while
+# working perfectly in dev -- which is exactly how it went unnoticed.
+COPY --from=builder --chown=app:app /app/public ./public
 
 # The mount points must exist before the volumes land on them.
 RUN mkdir -p /config /photos/originals /photos/derived && chown -R app:app /config /photos
