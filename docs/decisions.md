@@ -125,6 +125,55 @@ The whole product is one warm cream surface. The dark dashboard, and the light/d
 
 ---
 
+## 2026-08-20 — The decoder is chosen at runtime, not at build time
+
+The Phase 0 spike still has not been run, and the ingest pipeline was the thing
+waiting on it. Rather than block, `lib/ingest/decode.ts` tries all three
+candidates in the plan's order of preference — `sharp`, then `heic-convert`,
+then the `pillow-heif` sidecar — and keeps the first that works.
+
+This is not the spike, and it does not replace it. Whether libheif is compiled
+into this image's libvips is a property of the image, so discovering it at
+runtime is more honest than asserting it at build time, and it costs one failed
+decode per boot rather than one per photo. The winner is logged.
+
+Two things the spike still has to tell us that this cannot: how often GPS
+actually survives the trip off the phones, and how slow the winning decoder is
+on a real 12MP HEIC on that hardware.
+
+**One gap to know about.** The runner image has no Python and no `pillow-heif`;
+only the `spike` target does. If the spike comes back saying the sidecar is the
+only path that works, the runner stage of the `Dockerfile` needs the same
+packages the spike stage installs. Until then the third decoder always fails in
+production, falls through, and says so.
+
+## 2026-08-20 — Derivatives are WebP, and EXIF stripping is an absence
+
+Two variants: `thumb` at 640px and `web` at 1800px, both WebP. WebP because
+every browser that can reach this app reads it and it is roughly a third of the
+bytes of equivalent JPEG; 1800px because past that a phone photo in a lightbox
+gains nothing worth the storage.
+
+The EXIF stripping that the hard rules require is implemented as *not calling*
+`sharp`'s `withMetadata()`. That is worth stating out loud because it is the
+kind of security property a well-meaning edit reintroduces — adding
+`withMetadata()` back to preserve a colour profile would silently start
+publishing coordinates. `.rotate()` is called instead, which bakes the
+orientation into the pixels before the tag goes away.
+
+## 2026-08-20 — Session clustering and date matching are suggestions only
+
+Both of the cheap signals from plan §4.4 are implemented, and neither can
+assign a photo on its own. A photo promoted because of the company it was taken
+in, or because its date has exactly one recorded visit, lands as `suggested`
+with no visit linked, and waits for one tap in the queue.
+
+Only a GPS fix inside 400m assigns without a human. The asymmetry is
+deliberate: an unassigned photo is visible work sitting in a queue, whereas a
+wrongly assigned one is invisible and quietly corrupts a park's gallery.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.

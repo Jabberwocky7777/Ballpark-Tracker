@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div>
       <nav className="label flex gap-4 border-b border-paper-line pb-3 text-muted">
         <Link href="/admin" className="hover:text-ink">Queue</Link>
+        <Link href="/admin/upload" className="hover:text-ink">Upload</Link>
         <Link href="/admin/visits" className="hover:text-ink">Visits</Link>
         <form action="/api/admin/logout" method="post" className="ml-auto">
           <button type="submit" className="label text-muted hover:text-ink">Sign out</button>

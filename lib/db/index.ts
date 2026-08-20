@@ -3,7 +3,7 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import * as schema from "./schema";
+import * as schema from "./schema.ts";
 
 /**
  * One SQLite file, in DATA_DIR. Never on an SMB or NFS path -- SQLite's

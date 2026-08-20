@@ -2,6 +2,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { join } from "node:path";
 import { getDb, dbPath } from "./lib/db";
 import { seedReferenceData } from "./lib/db/seed-data";
+import { startWorker } from "./lib/jobs/worker";
 
 /**
  * Migrations, reference-data seeding, and a one-line statement of how the admin
@@ -24,6 +25,21 @@ try {
   // a container that refuses to start.
   console.error("[startup] database initialisation failed:", err);
   throw err;
+}
+
+/**
+ * The background worker that decodes photos and writes derivatives.
+ *
+ * In-process and serial. It starts after migrations because its first act is
+ * to requeue anything a restart stranded mid-decode, which needs the tables to
+ * exist. A failure to start is logged rather than thrown: derivatives are
+ * regenerable, and a site that serves its existing pages is better than one
+ * that refuses to boot because image processing is unhappy.
+ */
+try {
+  startWorker();
+} catch (err) {
+  console.error("[startup] the photo job worker did not start:", err);
 }
 
 /**

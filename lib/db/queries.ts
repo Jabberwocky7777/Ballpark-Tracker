@@ -1,6 +1,6 @@
 import "server-only";
 import { and, asc, desc, eq } from "drizzle-orm";
-import { getDb, schema } from "./index";
+import { getDb, schema } from "./index.ts";
 import type { Franchise, Tenancy, Trip, Venue, Visit } from "../types";
 
 /**

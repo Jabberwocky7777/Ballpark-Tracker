@@ -12,6 +12,17 @@ import { isAbsolute, join, resolve, sep } from "node:path";
  * Pure, so the traversal cases can be tested without touching a filesystem.
  */
 export function resolveDerivativePath(root: string, storedPath: string): string | null {
+  return resolveWithinRoot(root, storedPath);
+}
+
+/**
+ * The same check, named for what it does, for the other root.
+ *
+ * The job worker reads originals rather than derivatives and needs exactly
+ * this guarantee, and a second implementation of a path-containment check is
+ * how one of them ends up subtly weaker than the other.
+ */
+export function resolveWithinRoot(root: string, storedPath: string): string | null {
   if (!storedPath) return null;
 
   // A NUL byte truncates the path in some syscalls; reject rather than clean.

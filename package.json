@@ -21,7 +21,9 @@
     "hash-password": "node scripts/hash-password.ts",
     "check:coords": "node scripts/check-coords.mjs",
     "harvest:photos": "node scripts/harvest-park-photos.mjs",
-    "fetch:photos": "node scripts/fetch-park-photos.mjs"
+    "fetch:photos": "node scripts/fetch-park-photos.mjs",
+    "import:photos": "node --conditions=react-server scripts/import-photos.ts",
+    "jobs:drain": "node --conditions=react-server scripts/drain-jobs.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.1.0",

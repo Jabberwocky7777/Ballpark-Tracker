@@ -1,4 +1,5 @@
 import { getDb, schema } from "@/lib/db";
+import { pendingCount } from "@/lib/jobs/queue";
 import { eq, isNull } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export default function AdminQueuePage() {
   const db = getDb();
   const unassigned = db.select().from(schema.photos).where(isNull(schema.photos.visitId)).limit(50).all();
   const needsReview = db.select().from(schema.photos).where(eq(schema.photos.needsReview, 1)).limit(50).all();
+  const pending = pendingCount();
 
   return (
     <main className="pt-5">
@@ -39,8 +41,19 @@ export default function AdminQueuePage() {
         )}
       </section>
 
+      {pending > 0 && (
+        <section className="mt-7">
+          <h2 className="label text-muted">Still processing</h2>
+          <p className="tabular mt-2 text-[14px] text-ink">{pending} photos</p>
+          <p className="mt-1 text-[13px] text-muted">
+            Thumbnails are being generated in the background. Nothing needs doing.
+          </p>
+        </section>
+      )}
+
       <p className="mt-10 text-[13px] text-muted">
-        Upload and bulk assignment arrive with the ingest pipeline.
+        Bulk assignment arrives next. Until then, photos can be uploaded and are matched
+        automatically wherever their location survived.
       </p>
     </main>
   );
