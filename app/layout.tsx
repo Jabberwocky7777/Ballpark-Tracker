@@ -21,9 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${tabular.variable}`}>
       <body>
-        <div className="mx-auto w-full max-w-[520px] px-5">
+        <div className="shell px-5">
           <header className="flex items-baseline justify-between pt-7 pb-5">
-            <Link href="/" className="display text-[26px] italic leading-none text-chalk">
+            <Link href="/" className="display text-[26px] italic leading-none text-chalk sm:text-[32px]">
               Ballpark Tracker
             </Link>
             <nav className="label flex gap-4 text-chalk-dim">

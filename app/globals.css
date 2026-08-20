@@ -22,9 +22,29 @@
   --font-tabular: var(--font-space-grotesk), ui-monospace, monospace;
 }
 
-/* The product is one continuous scrollable card, not a boxed dashboard. */
+/* One continuous scrollable card, not a boxed dashboard -- but it should not
+   sit in a narrow ribbon on a desktop monitor either. The 520px column is the
+   phone design; wider screens get room rather than a different layout. */
 :root {
   --content: 520px;
+}
+
+@media (min-width: 700px) {
+  :root {
+    --content: 660px;
+  }
+}
+
+@media (min-width: 1100px) {
+  :root {
+    --content: 880px;
+  }
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--content);
+  margin-inline: auto;
 }
 
 html {
@@ -37,6 +57,12 @@ body {
   color: var(--color-chalk);
   font-size: 14px;
   line-height: 1.55;
+}
+
+@media (min-width: 700px) {
+  body {
+    font-size: 15px;
+  }
 }
 
 /* Numbers get presence from the tabular face, never from a progress bar. */

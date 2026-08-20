@@ -33,7 +33,7 @@ interface Props {
   pins: MapPin[];
 }
 
-const PIN_W = 15;
+const PIN_W = 19;
 const PIN_H = (PIN_W * 26) / 24;
 /** The silhouette's home-plate tip sits at y=23 of the 26-unit box. */
 const TIP_Y = (PIN_H * 23) / 26;
@@ -69,10 +69,16 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
         <rect width={width} height={height} fill="var(--color-ink-deep)" />
 
         {neighbourPaths.map((d, i) => (
-          <path key={`n${i}`} d={d} fill="#141d33" />
+          <path key={`n${i}`} d={d} fill="var(--color-ink)" />
         ))}
         {statePaths.map((d, i) => (
-          <path key={`s${i}`} d={d} fill="#18233d" stroke="var(--color-ink-line)" strokeWidth={0.6} />
+          <path
+            key={`s${i}`}
+            d={d}
+            fill="var(--color-ink-panel)"
+            stroke="var(--color-ink-line)"
+            strokeWidth={0.7}
+          />
         ))}
 
         {/* Tethers first, so they sit under every pin. */}
@@ -165,7 +171,7 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
           <div
             role="dialog"
             aria-label={selected.name}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[520px] border-t border-ink-line bg-ink-panel px-5 pb-7 pt-4"
+            className="shell fixed inset-x-0 bottom-0 z-50 border-t border-ink-line bg-ink-panel px-5 pb-7 pt-4"
           >
             <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-chalk-dim" />
             <p className="label text-chalk-dim">Not yet</p>

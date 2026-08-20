@@ -122,10 +122,10 @@ function Counter({
   note?: string;
 }) {
   return (
-    <div className="rounded-[4px] bg-ink-panel px-4 py-3">
+    <div className="rounded-[4px] bg-ink-panel px-4 py-4 sm:px-5 sm:py-5">
       <p className="tabular leading-none">
-        <span className="text-[30px] font-bold text-chalk">{value}</span>
-        <span className="text-[20px] text-chalk-dim">/{total}</span>
+        <span className="text-[34px] font-bold text-chalk sm:text-[44px]">{value}</span>
+        <span className="text-[22px] text-chalk-dim sm:text-[28px]">/{total}</span>
       </p>
       <p className="label mt-2 text-chalk-muted">{label}</p>
       {note && <p className="mt-0.5 text-[11px] text-chalk-dim">{note}</p>}
@@ -145,7 +145,7 @@ function Legend() {
     <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
       {LEGEND.map((l) => (
         <li key={l.state} className="flex items-center gap-1.5">
-          <Fingerprint index={l.fp} state={l.state} size={14} />
+          <Fingerprint index={l.fp} state={l.state} size={16} />
           <span className="label text-chalk-dim">{l.text}</span>
         </li>
       ))}

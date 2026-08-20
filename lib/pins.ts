@@ -27,7 +27,7 @@ export interface ProjectedVenue {
  * Deterministic: sorted input, fixed iteration count, no randomness, so the
  * server and client agree and the map doesn't jitter between renders.
  */
-export function separatePins(pins: ProjectedVenue[], minDistance = 16): ProjectedVenue[] {
+export function separatePins(pins: ProjectedVenue[], minDistance = 21): ProjectedVenue[] {
   const out = [...pins]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((p) => ({ ...p }));
