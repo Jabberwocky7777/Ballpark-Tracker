@@ -15,6 +15,10 @@ jobs:
           fetch-depth: 0
 
       - name: Check for secrets, photos, and infrastructure identifiers
+        env:
+          # Site-specific identifiers, one regex per line. Optional: the
+          # generic checks run either way.
+          EXTRA_SECRET_PATTERNS: ${{ secrets.EXTRA_SECRET_PATTERNS }}
         run: bash scripts/check-no-secrets.sh
 
       # Invoked directly rather than via gitleaks-action, which scans the range
