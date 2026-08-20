@@ -10,7 +10,7 @@ import { resolveTimestamp, venueOffsetMinutes } from "../timestamp.ts";
 import { chooseAssignment, type Assignment, type VisitRecord } from "./assign.ts";
 import { readMetadata } from "./exif.ts";
 import { sniffImage } from "./magic.ts";
-import { ensureDir, originalsDir } from "./paths.ts";
+import { originalsDir } from "../storage.ts";
 import { originalRelativePath } from "./storage-path.ts";
 
 /**
@@ -35,7 +35,7 @@ import { originalRelativePath } from "./storage-path.ts";
 /** 60MB. A 48MP ProRAW frame fits; a video does not. */
 export const MAX_BYTES = 60 * 1024 * 1024;
 
-export type IngestOutcome = "stored" | "duplicate" | "rejected";
+type IngestOutcome = "stored" | "duplicate" | "rejected";
 
 /**
  * Per-file, and deliberately detailed. Section 4.1 asks for GPS found / no GPS
@@ -57,7 +57,7 @@ export interface IngestReport {
   bytes: number;
 }
 
-export interface IngestOptions {
+interface IngestOptions {
   buffer: Buffer;
   /** For display and for the report only. Never used to build a path. */
   filename: string;
@@ -144,8 +144,9 @@ export async function ingestPhoto(options: IngestOptions): Promise<IngestReport>
   if (!relative) return { ...base, reason: "could not derive a storage path" };
 
   // --- write once, never over -------------------------------------------
-  const target = join(ensureDir(originalsDir()), relative);
+  const target = join(originalsDir(), relative);
   try {
+    // Recursive, so this creates the root as well as the fan-out directory.
     await mkdir(dirname(target), { recursive: true });
     await storeOriginal(target, buffer);
   } catch (err) {

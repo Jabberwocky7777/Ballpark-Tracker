@@ -12,7 +12,7 @@
 
 export type ImageFormat = "jpeg" | "png" | "heic" | "heif" | "tiff" | "webp";
 
-export interface SniffedImage {
+interface SniffedImage {
   format: ImageFormat;
   mime: string;
   /** The extension the original is stored under. Ours, never the uploader's. */

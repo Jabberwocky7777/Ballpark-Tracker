@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { UploadResponse, UploadSummary } from "@/app/api/upload/route";
 
 /**
  * The upload form, and the per-file report that comes back.
@@ -15,31 +16,15 @@ import { useRef, useState } from "react";
  * all live state. The route it posts to does the real work.
  */
 
-interface Report {
-  filename: string;
-  outcome: "stored" | "duplicate" | "rejected";
-  photoId: string | null;
-  reason: string | null;
-  gps: "found" | "none";
-  date: "found" | "none";
-  venueId: string | null;
-  confidence: "confident" | "suggested" | "unmatched";
-  assignedVisit: boolean;
-  homeGuardFlag: boolean;
-}
-
-interface Summary {
-  stored: number;
-  duplicates: number;
-  rejected: number;
-  noGps: number;
-  needsAPark: number;
-}
+// The route owns the wire shape; this reads it rather than restating it.
+// A type-only import is erased at compile time, so nothing server-side is
+// pulled into the client bundle.
+type Report = UploadResponse["reports"][number];
 
 export function UploadForm({ names }: { names: { userA: string; userB: string } }) {
   const [busy, setBusy] = useState(false);
   const [reports, setReports] = useState<Report[] | null>(null);
-  const [summary, setSummary] = useState<Summary | null>(null);
+  const [summary, setSummary] = useState<UploadSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -62,7 +47,7 @@ export function UploadForm({ names }: { names: { userA: string; userB: string } 
         return;
       }
 
-      const body = await response.json();
+      const body: UploadResponse = await response.json();
       setReports(body.reports);
       setSummary(body.summary);
       formRef.current?.reset();
@@ -134,7 +119,7 @@ export function UploadForm({ names }: { names: { userA: string; userB: string } 
   );
 }
 
-function Results({ summary, reports }: { summary: Summary; reports: Report[] }) {
+function Results({ summary, reports }: { summary: UploadSummary; reports: Report[] }) {
   return (
     <section className="mt-9">
       <h2 className="label text-muted">What arrived</h2>

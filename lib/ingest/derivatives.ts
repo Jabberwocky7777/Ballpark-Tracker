@@ -21,13 +21,13 @@ import { derivativeRelativePath } from "./storage-path.ts";
  * tag is gone.
  */
 
-export interface VariantSpec {
+interface VariantSpec {
   kind: string;
   width: number;
   quality: number;
 }
 
-export const VARIANTS: VariantSpec[] = [
+const VARIANTS: VariantSpec[] = [
   // Enough for the map hover card and the queue grid at 2x.
   { kind: "thumb", width: 640, quality: 74 },
   // The lightbox. Beyond this, a phone photo gains nothing worth the bytes.
@@ -36,14 +36,14 @@ export const VARIANTS: VariantSpec[] = [
 
 const FORMAT = "webp";
 
-export interface GeneratedVariant {
+interface GeneratedVariant {
   kind: string;
   path: string;
   format: string;
   width: number;
 }
 
-export interface DerivativeResult {
+interface DerivativeResult {
   variants: GeneratedVariant[];
   /** Dimensions of the original, for layout without reading the file again. */
   width: number | null;

@@ -1,8 +1,12 @@
 import { isAbsolute, join, resolve, sep } from "node:path";
 
 /**
- * Resolves a stored derivative path against the derivatives root, and refuses
- * anything that escapes it.
+ * Resolves a stored path against the root it is supposed to live under, and
+ * refuses anything that escapes it.
+ *
+ * Both roots use this: the route serving derivatives and the worker reading
+ * originals. One implementation rather than two, because two is how one of
+ * them ends up subtly weaker than the other.
  *
  * Paths always come from our own database rather than from a request -- the
  * route only ever uses the photo id as a lookup key. This is the second line:
@@ -10,17 +14,6 @@ import { isAbsolute, join, resolve, sep } from "node:path";
  * /etc/passwd or of the originals directory.
  *
  * Pure, so the traversal cases can be tested without touching a filesystem.
- */
-export function resolveDerivativePath(root: string, storedPath: string): string | null {
-  return resolveWithinRoot(root, storedPath);
-}
-
-/**
- * The same check, named for what it does, for the other root.
- *
- * The job worker reads originals rather than derivatives and needs exactly
- * this guarantee, and a second implementation of a path-containment check is
- * how one of them ends up subtly weaker than the other.
  */
 export function resolveWithinRoot(root: string, storedPath: string): string | null {
   if (!storedPath) return null;

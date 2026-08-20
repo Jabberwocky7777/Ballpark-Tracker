@@ -1,4 +1,4 @@
-import type { Franchise, ParkState, Tenancy, Venue, Visit } from "./types";
+import type { Franchise, ParkState, Tenancy, Venue, Visit } from "./types.ts";
 
 /**
  * The check-off rule, in one pure function. docs/plan.md section 4.8.

@@ -12,10 +12,10 @@ import { getDb, schema } from "../db/index.ts";
  * returns. Everything slow happens after the response.
  */
 
-export type JobKind = "derivatives";
-export type JobStatus = "pending" | "running" | "done" | "failed";
+type JobKind = "derivatives";
+type JobStatus = "pending" | "running" | "done" | "failed";
 
-export interface Job {
+interface Job {
   id: number;
   kind: string;
   payload: unknown;

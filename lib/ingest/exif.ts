@@ -15,7 +15,7 @@ import type { RawTimestampTags } from "../timestamp.ts";
  * or below it ever writes to the input. Originals are immutable.
  */
 
-export interface PhotoMetadata {
+interface PhotoMetadata {
   coordinate: Coordinate | null;
   /** How the coordinate was obtained, stored so a later re-match can weigh it. */
   gpsSource: "exif" | null;

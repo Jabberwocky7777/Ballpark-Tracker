@@ -1,9 +1,10 @@
 import "server-only";
+import { readFile } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "../db/index.ts";
 import { generateDerivatives } from "../ingest/derivatives.ts";
-import { sniffImage, type ImageFormat } from "../ingest/magic.ts";
-import { derivedDir, ensureDir, originalsDir } from "../ingest/paths.ts";
+import { sniffImage } from "../ingest/magic.ts";
+import { derivedDir, originalsDir } from "../storage.ts";
 import { resolveWithinRoot } from "../photo-path.ts";
 import { claimNext, markDone, markFailed, MAX_ATTEMPTS, requeueStranded } from "./queue.ts";
 
@@ -51,8 +52,8 @@ async function loop(): Promise<void> {
   }
 }
 
-/** Runs at most one job. Returns whether there was one. Exported for the CLI. */
-export async function drainOne(): Promise<boolean> {
+/** Runs at most one job. Returns whether there was one. */
+async function drainOne(): Promise<boolean> {
   const job = claimNext();
   if (!job) return false;
 
@@ -114,14 +115,13 @@ async function runDerivatives(payload: unknown): Promise<void> {
   const source = resolveWithinRoot(originalsDir(), photo.storedPath);
   if (!source) throw new Error(`stored path escapes the originals root: ${photo.storedPath}`);
 
-  const { readFile } = await import("node:fs/promises");
   const bytes = await readFile(source);
 
   const sniffed = sniffImage(bytes);
   if (!sniffed) throw new Error(`stored original is not a readable image: ${photoId}`);
 
-  const root = ensureDir(derivedDir());
-  const result = await generateDerivatives(bytes, sniffed.format as ImageFormat, photoId, root);
+  // generateDerivatives creates each variant's directory as it writes it.
+  const result = await generateDerivatives(bytes, sniffed.format, photoId, derivedDir());
 
   db.transaction((tx) => {
     // Regenerating replaces rather than accumulates: a requeued job must not

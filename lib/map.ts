@@ -1,6 +1,7 @@
 import { geoAlbers, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
-import type { Venue } from "./types";
+import type { Venue } from "./types.ts";
+import type { ProjectedVenue } from "./pins.ts";
 
 // Static imports, not createRequire. Next's build tracer cannot follow a
 // runtime require into node_modules, so `output: standalone` silently shipped
@@ -80,10 +81,8 @@ export function mapGeometry(): MapGeometry {
   return cachedGeometry;
 }
 
-export type { ProjectedVenue } from "./pins";
-export { separatePins } from "./pins";
-
-import type { ProjectedVenue } from "./pins";
+export type { ProjectedVenue } from "./pins.ts";
+export { separatePins } from "./pins.ts";
 
 export function projectVenue(venue: Venue): ProjectedVenue | null {
   const p = projection([venue.lng, venue.lat]);

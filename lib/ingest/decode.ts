@@ -19,7 +19,7 @@ import { needsHeicDecode, type ImageFormat } from "./magic.ts";
  * JPEG, PNG, TIFF and WebP never come through here -- sharp reads those itself.
  */
 
-export type DecoderName = "sharp" | "heic-convert" | "pillow-heif";
+type DecoderName = "sharp" | "heic-convert" | "pillow-heif";
 
 interface Decoder {
   name: DecoderName;
@@ -52,18 +52,6 @@ const DECODERS: Decoder[] = [
 ];
 
 let winner: DecoderName | null = null;
-
-/** Which decoder handled the last HEIC. Null until one has been needed. */
-export function heicDecoderInUse(): DecoderName | null {
-  return winner;
-}
-
-export class DecodeError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "DecodeError";
-  }
-}
 
 /**
  * Decodes to a buffer sharp can read. Non-HEIC input is returned untouched --
@@ -102,7 +90,7 @@ export async function decodeToRaster(input: Buffer, format: ImageFormat): Promis
 
   // All three failed. This is the Phase 0 gate failing in production, so say
   // exactly which paths were tried -- the answer changes the stack.
-  throw new DecodeError(`no HEIC decoder available. Tried -- ${failures.join("; ")}`);
+  throw new Error(`no HEIC decoder available. Tried -- ${failures.join("; ")}`);
 }
 
 function runPythonSidecar(input: Buffer): Promise<Buffer> {

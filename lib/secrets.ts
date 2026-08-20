@@ -3,6 +3,7 @@ import { hash } from "@node-rs/argon2";
 import { randomBytes } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { dataDir } from "./storage.ts";
 
 /**
  * Where the two secrets come from.
@@ -38,8 +39,7 @@ export function getSessionSecret(): string {
     return cachedSessionSecret;
   }
 
-  const dataDir = process.env.DATA_DIR ?? join(process.cwd(), "data");
-  const keyPath = join(dataDir, "session.key");
+  const keyPath = join(dataDir(), "session.key");
 
   try {
     if (existsSync(keyPath)) {

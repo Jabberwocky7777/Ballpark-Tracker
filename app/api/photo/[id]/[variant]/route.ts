@@ -2,7 +2,8 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { and, eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { resolveDerivativePath } from "@/lib/photo-path";
+import { resolveWithinRoot } from "@/lib/photo-path";
+import { derivedDir } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export async function GET(
 
   // Defence in depth: the path came from our own database, but a corrupted row
   // must not be able to read outside the derivatives directory.
-  const target = resolveDerivativePath(process.env.DERIVED_DIR ?? "/photos/derived", row.path);
+  const target = resolveWithinRoot(derivedDir(), row.path);
   if (!target) {
     console.error(`[photo] refusing stored path outside the derivatives root: ${row.path}`);
     return new Response(null, { status: 404 });

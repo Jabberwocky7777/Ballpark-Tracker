@@ -29,6 +29,25 @@ export const runtime = "nodejs";
 /** Enough for a full evening off one phone; short of a whole-library dump. */
 const MAX_FILES = 60;
 
+/**
+ * The wire shape, declared once and imported by the page that renders it.
+ * Typing the response here means a field renamed in the route stops the build
+ * rather than quietly rendering as `undefined` on the upload screen.
+ */
+export interface UploadSummary {
+  stored: number;
+  duplicates: number;
+  rejected: number;
+  /** The ones that will need a park picking by hand. */
+  noGps: number;
+  needsAPark: number;
+}
+
+export interface UploadResponse {
+  reports: IngestReport[];
+  summary: UploadSummary;
+}
+
 export async function POST(request: Request) {
   if (!(await isAuthenticated())) {
     // Same 404 the middleware would have given. A 401 here would confirm the
@@ -82,18 +101,20 @@ export async function POST(request: Request) {
   }
 
   const stored = reports.filter((r) => r.outcome === "stored");
-  return NextResponse.json({
+
+  const body: UploadResponse = {
     reports,
     summary: {
       stored: stored.length,
       duplicates: reports.filter((r) => r.outcome === "duplicate").length,
       rejected: reports.filter((r) => r.outcome === "rejected").length,
-      // The number that matters: these are the ones that need a park picking
-      // by hand, and it should be visible immediately.
+      // The number that matters, and it should be visible immediately.
       noGps: stored.filter((r) => r.gps === "none").length,
       needsAPark: stored.filter((r) => r.confidence !== "confident").length,
     },
-  });
+  };
+
+  return NextResponse.json(body);
 }
 
 /** user_a or user_b only. Never a real name, and never free text from a form. */

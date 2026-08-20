@@ -1,9 +1,9 @@
 import "server-only";
 import { verify } from "@node-rs/argon2";
 import { cookies, headers } from "next/headers";
-import { SESSION_COOKIE, verifySessionToken } from "./session";
-import { clientAddress } from "./host-gate";
-import { getAdminPasswordHash, getSessionSecret } from "./secrets";
+import { SESSION_COOKIE, verifySessionToken } from "./session.ts";
+import { clientAddress } from "./host-gate.ts";
+import { getAdminPasswordHash, getSessionSecret } from "./secrets.ts";
 
 /** @node-rs/argon2 exports Algorithm as an ambient const enum, which cannot be
  *  referenced under isolatedModules. Argon2id is 2. */

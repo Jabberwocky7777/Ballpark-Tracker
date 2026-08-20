@@ -1,4 +1,4 @@
-import type { Venue, VenueName } from "../types";
+import type { Venue, VenueName } from "../types.ts";
 
 /**
  * Public reference data. Coordinates are venue centres, hand-entered and

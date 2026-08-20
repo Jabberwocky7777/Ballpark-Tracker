@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { getDb, schema } from "./index.ts";
-import type { Franchise, Tenancy, Trip, Venue, Visit } from "../types";
+import type { Franchise, Tenancy, Trip, Venue, Visit } from "../types.ts";
 
 /**
  * The boundary between the database and the pure domain logic.

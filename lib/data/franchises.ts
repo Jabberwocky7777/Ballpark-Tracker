@@ -1,4 +1,4 @@
-import type { Franchise, Tenancy } from "../types";
+import type { Franchise, Tenancy } from "../types.ts";
 
 export const franchises: Franchise[] = [
   { id: "bal", name: "Orioles", abbrev: "BAL", league: "AL", division: "East" },

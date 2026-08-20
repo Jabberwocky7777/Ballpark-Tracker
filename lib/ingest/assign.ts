@@ -103,7 +103,7 @@ export interface SessionPhoto {
   assignment: Assignment;
 }
 
-export const SESSION_GAP_HOURS = 4;
+const SESSION_GAP_HOURS = 4;
 
 /**
  * Groups photos into sessions by time gap, oldest first.

@@ -40,6 +40,7 @@ Built and verified end to end against the running dev server.
 | Orchestration | `lib/ingest/ingest.ts` — the whole sequence, one function |
 | Assignment logic | `lib/ingest/assign.ts` — tiers, session clustering, date matching |
 | Job queue and worker | `lib/jobs/` — in-process, serial, starts at boot |
+| Storage roots | `lib/storage.ts` — `DATA_DIR`/`ORIGINALS_DIR`/`DERIVED_DIR`, read in one place |
 | Upload route | `app/api/upload/route.ts` — per-file report |
 | Upload page | `/admin/upload` — with the "send them the right way" copy |
 | Bulk CLI import | `scripts/import-photos.ts` — resumable, for the backlog |
@@ -147,11 +148,13 @@ uploaded can ever be seen.
 - **Site identifiers never go in a committed file**, not even as a test fixture or
   a search pattern. They live in `scripts/private-patterns.txt`, which is
   gitignored. The gate scans every tracked file including itself.
-- **`node` needs explicit `.ts` extensions** in files that scripts import
-  directly; webpack does not care, which hides the breakage until a CLI runs.
-  `lib/db/index.ts` and `lib/db/queries.ts` were fixed for exactly this reason —
-  the CLI import shares the ingest module with the upload route, which drags the
-  database layer in with it.
+- **`node` needs explicit `.ts` extensions** on relative imports; webpack does
+  not care, which hides the breakage until a CLI runs. Every relative import
+  inside `lib/` now carries one, so match that rather than reintroducing the
+  mixture — the CLI shares the ingest module with the upload route, which drags
+  the database layer along with it.
+- **`app/` imports through the `@/` alias and never with an extension.** Two
+  conventions, one per directory, and they do not meet.
 - **CLI scripts that touch `lib/` need `--conditions=react-server`**, or the
   `server-only` import throws. The npm scripts already pass it.
 

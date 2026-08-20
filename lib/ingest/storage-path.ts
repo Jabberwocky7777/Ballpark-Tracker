@@ -1,18 +1,14 @@
 /**
  * Where an original and its derivatives live on disk.
  *
- * Two rules shape this. Originals are immutable and written once, so the path
- * is derived from the content hash and can never collide with a different
- * photo. And no path component ever comes from user input -- not the filename,
- * not the extension the uploader claimed -- because the alternative is a
- * traversal bug in the one directory that must never be overwritten.
+ * No path component ever comes from user input -- not the filename, not the
+ * extension the uploader claimed -- so both functions validate their inputs and
+ * return null rather than building a path they are unsure of. The two-level
+ * fan-out keeps directory listings usable; a few thousand photos in one flat
+ * directory is slow on ZFS and miserable to inspect by hand.
  *
- * The two-level fan-out keeps directory listings usable: a few thousand photos
- * in one flat directory is slow on ZFS and miserable to inspect by hand.
- *
- * Pure: string in, string out, no fs. Paths are relative to their root and
- * always use forward slashes, so a value written on one platform still
- * resolves on another.
+ * Pure, and relative to a root, with forward slashes so a value written on one
+ * platform still resolves on another.
  */
 
 const SHA256 = /^[0-9a-f]{64}$/;

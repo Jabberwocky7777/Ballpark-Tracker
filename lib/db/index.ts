@@ -1,8 +1,8 @@
 import "server-only";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { dataDir, ensureDir } from "../storage.ts";
 import * as schema from "./schema.ts";
 
 /**
@@ -13,9 +13,7 @@ import * as schema from "./schema.ts";
  * is gitignored.
  */
 export function dbPath(): string {
-  const dir = process.env.DATA_DIR ?? join(process.cwd(), "data");
-  mkdirSync(dir, { recursive: true });
-  return join(dir, "ballpark.db");
+  return join(ensureDir(dataDir()), "ballpark.db");
 }
 
 let cached: ReturnType<typeof drizzle<typeof schema>> | null = null;

@@ -1,4 +1,4 @@
-import type { Trip, Visit } from "../types";
+import type { Trip, Visit } from "../types.ts";
 
 /**
  * DEMO DATA ONLY. Invented, for developing the UI before the ingest pipeline
