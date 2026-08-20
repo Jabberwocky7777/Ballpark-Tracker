@@ -58,6 +58,23 @@ The seed script is idempotent: every row is upserted by primary key, so re-runni
 
 ---
 
+## 2026-08-19 — Two independent locks on the admin surface
+
+**Lock one, the middleware.** Compares the request `Host` to `PUBLIC_HOSTNAME`. On a match, `/admin`, `/api/upload*` and `/api/admin*` return **404** — never 403, which would confirm the routes exist. The decision is a pure function in `lib/host-gate.ts` with tests covering ports, casing, IPv6 literals, missing headers, and near-miss hostnames like `evil-mlb.example.com`.
+
+**Lock two, the session.** argon2id password check, then an HMAC-signed cookie. They are genuinely independent: a *valid* session presented over the public hostname still gets a 404. Verified end to end.
+
+**Choices worth recording:**
+
+- `@node-rs/argon2` rather than `argon2` — prebuilt bindings, so neither the Windows dev machine nor the image needs a node-gyp toolchain.
+- Sessions are signed, not encrypted, and use `node:crypto` directly. There is nothing secret in "somebody logged in", and a JWT library would be more surface area for no gain.
+- The session cookie is `Secure` **only** over HTTPS. Admin is reached over Tailscale on plain HTTP, and an unconditional `Secure` flag would mean the cookie is never sent — login would fail in exactly the deployment this app targets.
+- `X-Forwarded-For` is honoured only when the peer is `TRUSTED_PROXY_IP`, and only the **last** hop is taken; earlier entries are client-supplied and forgeable.
+- Login throttling is in-memory, not a table. Two users, one process, and a failed-login table is one more thing to back up. It resets on restart, which is acceptable behind a private network.
+- Every login failure returns one identical message. Distinguishing "no password configured" from "wrong password" is free reconnaissance.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.

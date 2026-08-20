@@ -17,9 +17,11 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/migrate.ts",
     "db:seed": "node scripts/seed.ts",
-    "db:reset": "node scripts/migrate.ts && node scripts/seed.ts -- --demo"
+    "db:reset": "node scripts/migrate.ts && node scripts/seed.ts -- --demo",
+    "hash-password": "node scripts/hash-password.ts"
   },
   "dependencies": {
+    "@node-rs/argon2": "^2.1.0",
     "better-sqlite3": "^13.0.3",
     "d3-geo": "^3.1.1",
     "drizzle-orm": "^0.45.2",
