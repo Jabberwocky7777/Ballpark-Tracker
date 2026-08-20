@@ -148,6 +148,12 @@ uploaded can ever be seen.
 - **Site identifiers never go in a committed file**, not even as a test fixture or
   a search pattern. They live in `scripts/private-patterns.txt`, which is
   gitignored. The gate scans every tracked file including itself.
+- **`npm run check` is not the whole hygiene gate.** CI also runs `gitleaks`,
+  which is not installed locally, so a push can fail on something that passed
+  every local check. It caught a *test fixture* once: a plausible-looking hex
+  photo id scored high enough on entropy to read as a leaked key. Keep
+  fixtures obviously fake — repeated characters rather than random-looking
+  ones — and that whole class stops happening.
 - **`node` needs explicit `.ts` extensions** on relative imports; webpack does
   not care, which hides the breakage until a CLI runs. Every relative import
   inside `lib/` now carries one, so match that rather than reintroducing the

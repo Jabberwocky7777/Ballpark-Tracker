@@ -43,7 +43,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run typecheck --if-present
-      # No test script until Phase 1, which starts with computeProgress() and
-      # its unit tests. --if-present keeps this honest rather than green-by-stub.
-      - run: npm run test --if-present
+      - run: npm run typecheck
+      - run: npm test
+      # Every venue's coordinates must land inside the state its record claims.
+      # Cheap, and it catches a transposed sign before it reaches the map.
+      - run: npm run check:coords

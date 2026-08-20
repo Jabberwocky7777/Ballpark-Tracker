@@ -36,8 +36,19 @@ describe("derivativeRelativePath", () => {
   });
 
   test("refuses an id that is not an opaque hex handle", () => {
-    for (const bad of ["", "short", "../../etc/passwd", "0123456789abcdefg", "01 23456789"]) {
-      assert.equal(derivativeRelativePath(bad, "thumb", "webp"), null, bad);
+    const bad = [
+      "",
+      "0123456", // a character short of the minimum
+      "f".repeat(65), // a character past the maximum
+      "zzzzzzzzzzzzzzzz", // right length, wrong alphabet
+      "01 23456789",
+      "../../etc/passwd",
+    ];
+    // Fixtures are deliberately repetitive rather than random-looking: a
+    // plausible-looking hex handle here reads as a leaked key to a secret
+    // scanner, and CI is right not to take our word for it.
+    for (const id of bad) {
+      assert.equal(derivativeRelativePath(id, "thumb", "webp"), null, id);
     }
   });
 
