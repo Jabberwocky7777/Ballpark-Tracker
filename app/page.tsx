@@ -2,35 +2,34 @@ import Link from "next/link";
 import { UsMap, type MapPin } from "@/components/UsMap";
 import { Fingerprint } from "@/components/Fingerprint";
 import { computeProgress } from "@/lib/progress";
-import { venues } from "@/lib/data/venues";
-import { franchises, tenancies } from "@/lib/data/franchises";
-import { demoVisits } from "@/lib/data/demo-visits";
+import { getFranchises, getTenancies, getVenues, getVisits } from "@/lib/db/queries";
 import { notYetBlurbs } from "@/lib/data/blurbs";
 import { mapGeometry, projectVenue, separatePins, MAP_WIDTH, MAP_HEIGHT } from "@/lib/map";
 import type { ParkState } from "@/lib/types";
 
-const CURRENT_YEAR = 2026;
+/** Reads the database on every request; nothing here can be prerendered. */
+export const dynamic = "force-dynamic";
 
 export default function HomePage() {
+  const venues = getVenues();
+  const visits = getVisits();
+
   const progress = computeProgress({
-    visits: demoVisits,
-    tenancies,
+    visits,
+    tenancies: getTenancies(),
     venues,
-    franchises,
-    currentYear: CURRENT_YEAR,
+    franchises: getFranchises(),
+    currentYear: new Date().getFullYear(),
   });
 
   const geo = mapGeometry();
 
   // Project first, then push apart anything that would render underneath a
   // neighbour -- several parks are within a pin's width of each other.
-  const projected = new Map(
-    progress.countedVenues
-      .map((vp) => projectVenue(vp.venue))
-      .filter((p): p is NonNullable<typeof p> => p !== null)
-      .map((p) => [p.id, p]),
-  );
-  const separated = new Map(separatePins([...projected.values()]).map((p) => [p.id, p]));
+  const projected = progress.countedVenues
+    .map((vp) => projectVenue(vp.venue))
+    .filter((p): p is NonNullable<typeof p> => p !== null);
+  const separated = new Map(separatePins(projected).map((p) => [p.id, p]));
 
   const pins: MapPin[] = progress.countedVenues
     .map((vp) => {
@@ -55,10 +54,8 @@ export default function HomePage() {
     })
     .filter((p): p is MapPin => p !== null);
 
-  const recent = [...demoVisits]
-    .filter((v) => v.attendedGame)
-    .sort((a, b) => b.visitDate.localeCompare(a.visitDate))
-    .slice(0, 3);
+  const venueById = new Map(venues.map((v) => [v.id, v]));
+  const recent = visits.filter((v) => v.attendedGame).slice(0, 3);
 
   return (
     <main>
@@ -86,19 +83,26 @@ export default function HomePage() {
 
       <section className="mt-9">
         <h2 className="label text-chalk-dim">Lately</h2>
-        <ul className="mt-3 divide-y divide-ink-line border-y border-ink-line">
-          {recent.map((v) => {
-            const venue = venues.find((x) => x.id === v.venueId)!;
-            return (
-              <li key={v.id}>
-                <Link href={`/park/${venue.slug}`} className="flex items-baseline gap-3 py-3">
-                  <span className="display flex-1 text-[17px] text-chalk">{venue.name}</span>
-                  <span className="tabular text-[12px] text-chalk-dim">{v.visitDate}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {recent.length === 0 ? (
+          <p className="mt-3 text-[14px] text-chalk-muted">
+            Nothing yet. The first park goes here.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-ink-line border-y border-ink-line">
+            {recent.map((v) => {
+              const venue = venueById.get(v.venueId);
+              if (!venue) return null;
+              return (
+                <li key={v.id}>
+                  <Link href={`/park/${venue.slug}`} className="flex items-baseline gap-3 py-3">
+                    <span className="display flex-1 text-[17px] text-chalk">{venue.name}</span>
+                    <span className="tabular text-[12px] text-chalk-dim">{v.visitDate}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
     </main>
   );

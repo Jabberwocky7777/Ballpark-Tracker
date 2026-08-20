@@ -19,7 +19,15 @@ Next.js (App Router) + TypeScript · SQLite · sharp + exifr · Tailwind · `d3-
 ```bash
 cp .env.example .env   # then fill it in
 npm install
+npm run db:migrate     # creates ./data/ballpark.db
+npm run db:seed        # public reference data: franchises, venues, tenancies
 npm run dev
+```
+
+To browse with invented visits instead of an empty database:
+
+```bash
+npm run db:seed -- --demo
 ```
 
 `.env` is gitignored. It stays that way — see below.

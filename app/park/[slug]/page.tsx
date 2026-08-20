@@ -3,12 +3,17 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Fingerprint } from "@/components/Fingerprint";
 import { computeProgress } from "@/lib/progress";
-import { venues, venueBySlug, venueNameOn } from "@/lib/data/venues";
-import { franchises, tenancies, franchiseById } from "@/lib/data/franchises";
-import { demoVisits, demoTrips } from "@/lib/data/demo-visits";
+import {
+  getFranchises,
+  getTenancies,
+  getTrips,
+  getVenueBySlug,
+  getVenueNameOn,
+  getVenues,
+  getVisits,
+  getVisitsForVenue,
+} from "@/lib/db/queries";
 import { notYetBlurbs } from "@/lib/data/blurbs";
-
-const CURRENT_YEAR = 2026;
 
 /**
  * Rendered per request rather than prerendered. The two display names arrive as
@@ -23,7 +28,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const venue = venueBySlug.get(slug);
+  const venue = getVenueBySlug(slug);
   if (!venue) return {};
   return {
     title: `${venue.name} — Ballpark Tracker`,
@@ -33,23 +38,26 @@ export async function generateMetadata({
 
 export default async function ParkPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const venue = venueBySlug.get(slug);
+  const venue = getVenueBySlug(slug);
   if (!venue) notFound();
 
   const userA = process.env.USER_A_NAME ?? "A";
   const userB = process.env.USER_B_NAME ?? "B";
 
+  const franchises = getFranchises();
+  const franchiseById = new Map(franchises.map((f) => [f.id, f]));
+  const trips = getTrips();
+
   const progress = computeProgress({
-    visits: demoVisits,
-    tenancies,
-    venues,
+    visits: getVisits(),
+    tenancies: getTenancies(),
+    venues: getVenues(),
     franchises,
-    currentYear: CURRENT_YEAR,
+    currentYear: new Date().getFullYear(),
   });
-  const vp = progress.byVenue.get(venue.id)!;
-  const visits = demoVisits
-    .filter((v) => v.venueId === venue.id)
-    .sort((a, b) => b.visitDate.localeCompare(a.visitDate));
+  const vp = progress.byVenue.get(venue.id);
+  if (!vp) notFound();
+  const visits = getVisitsForVenue(venue.id);
 
   return (
     <main className="-mx-5 min-h-screen bg-paper px-5 pb-10 pt-6 text-paper-ink">
@@ -86,8 +94,8 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
       {visits.map((visit) => {
         const home = visit.homeTeamId ? franchiseById.get(visit.homeTeamId) : null;
         const away = visit.awayTeamId ? franchiseById.get(visit.awayTeamId) : null;
-        const trip = demoTrips.find((t) => t.id === visit.tripId);
-        const nameThatDay = venueNameOn(venue.id, visit.visitDate);
+        const trip = trips.find((t) => t.id === visit.tripId);
+        const nameThatDay = getVenueNameOn(venue.id, visit.visitDate);
 
         return (
           <article key={visit.id} className="mt-8 border-t border-paper-ink/10 pt-6">

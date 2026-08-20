@@ -1,16 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { computeProgress } from "@/lib/progress";
-import { venues } from "@/lib/data/venues";
-import { franchises, tenancies } from "@/lib/data/franchises";
-import { demoVisits } from "@/lib/data/demo-visits";
+import { getFranchises, getTenancies, getVenues, getVisits } from "@/lib/db/queries";
 
 export const metadata: Metadata = {
   title: "The shot — Ballpark Tracker",
   description: "The same photo at every park.",
 };
 
-const CURRENT_YEAR = 2026;
+/** Reads the database on every request; nothing here can be prerendered. */
+export const dynamic = "force-dynamic";
 
 /**
  * The repeated shot: one standard framing at every park, rendered as a grid.
@@ -18,18 +17,19 @@ const CURRENT_YEAR = 2026;
  * surface -- this is the browsing mode, not the data mode.
  */
 export default function RepeatedShotPage() {
+  const visits = getVisits();
   const progress = computeProgress({
-    visits: demoVisits,
-    tenancies,
-    venues,
-    franchises,
-    currentYear: CURRENT_YEAR,
+    visits,
+    tenancies: getTenancies(),
+    venues: getVenues(),
+    franchises: getFranchises(),
+    currentYear: new Date().getFullYear(),
   });
 
   const done = progress.countedVenues
     .filter((vp) => vp.visited)
     .map((vp) => {
-      const visit = demoVisits
+      const visit = visits
         .filter((v) => v.venueId === vp.venue.id && v.attendedGame)
         .sort((a, b) => a.visitDate.localeCompare(b.visitDate))[0];
       return { vp, visit };

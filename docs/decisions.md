@@ -46,6 +46,18 @@ The site is served at a subdomain of the personal domain. The actual hostname is
 
 ---
 
+## 2026-08-19 — SQLite via Drizzle, migrations committed
+
+`better-sqlite3` + `drizzle-orm`, both named in the stack section of the plan. Migrations are generated with `drizzle-kit` into `drizzle/` and **committed** — the schema history is part of the repo, and the container applies pending migrations on start.
+
+**Why `NOT NULL` with no default on two columns:** `tenancies.is_temporary` and `visits.attended_game` decide every counter on the site. A default of 0 on either would silently produce wrong totals rather than an error, so the database refuses to guess. There are tests asserting the constraint at the SQL level, not just in application code.
+
+`photos.is_public` does the opposite and defaults to 0 — private is the safe direction, and a photo that somehow skips the application path should still land private.
+
+The seed script is idempotent: every row is upserted by primary key, so re-running it updates the public reference data without touching a single visit or photo, and it never deletes.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.
