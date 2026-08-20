@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { computeProgress } from "@/lib/progress";
-import { getFranchises, getTenancies, getVenues, getVisits } from "@/lib/db/queries";
+import { getFranchises, getPublicVisits, getTenancies, getVenues } from "@/lib/db/queries";
 
 export const metadata: Metadata = {
   title: "The shot — Ballpark Tracker",
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  * surface -- this is the browsing mode, not the data mode.
  */
 export default function RepeatedShotPage() {
-  const visits = getVisits();
+  const visits = getPublicVisits();
   const progress = computeProgress({
     visits,
     tenancies: getTenancies(),

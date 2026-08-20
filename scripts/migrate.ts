@@ -1,9 +1,14 @@
 /**
- * Applies pending migrations. Safe to re-run: drizzle records what it has
- * applied, so this is idempotent, which matters because the same command runs
- * on container start against a database that holds irreplaceable records.
+ * Applies pending migrations.
  *
  *   npm run db:migrate
+ *
+ * The server also migrates on boot via instrumentation.node.ts, so this is not
+ * needed in production. It exists because `npm run db:seed` needs tables to
+ * exist, and on a fresh checkout you may want to seed before ever starting the
+ * dev server.
+ *
+ * Safe to re-run: drizzle records what it has applied.
  */
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";

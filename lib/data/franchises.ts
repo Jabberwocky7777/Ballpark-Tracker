@@ -86,5 +86,3 @@ export const tenancies: Tenancy[] = [
   { id: "t-sdp", franchiseId: "sdp", venueId: "petco", startYear: 2004, endYear: null, isTemporary: false, isCurrent: true },
   { id: "t-sfg", franchiseId: "sfg", venueId: "oracle", startYear: 2000, endYear: null, isTemporary: false, isCurrent: true },
 ];
-
-export const franchiseById = new Map(franchises.map((f) => [f.id, f]));

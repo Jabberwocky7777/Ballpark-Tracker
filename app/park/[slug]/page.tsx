@@ -10,10 +10,12 @@ import {
   getVenueBySlug,
   getVenueNameOn,
   getVenues,
-  getVisits,
-  getVisitsForVenue,
+  getPublicPhotosForVisit,
+  getPublicVisits,
+  getPublicVisitsForVenue,
 } from "@/lib/db/queries";
 import { notYetBlurbs } from "@/lib/data/blurbs";
+import type { PhotoSummary } from "@/lib/db/queries";
 
 /**
  * Rendered per request rather than prerendered. The two display names arrive as
@@ -49,7 +51,7 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
   const trips = getTrips();
 
   const progress = computeProgress({
-    visits: getVisits(),
+    visits: getPublicVisits(),
     tenancies: getTenancies(),
     venues: getVenues(),
     franchises,
@@ -57,7 +59,7 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
   });
   const vp = progress.byVenue.get(venue.id);
   if (!vp) notFound();
-  const visits = getVisitsForVenue(venue.id);
+  const visits = getPublicVisitsForVenue(venue.id);
 
   return (
     <main className="-mx-5 min-h-screen bg-paper px-5 pb-10 pt-6 text-paper-ink">
@@ -134,7 +136,7 @@ export default async function ParkPage({ params }: { params: Promise<{ slug: str
               </>
             )}
 
-            <PhotoGrid count={visit.attendedGame ? 6 : 2} />
+            <PhotoGrid photos={getPublicPhotosForVisit(visit.id)} />
 
             {(visit.notesUserA || visit.notesUserB) && (
               <div className="mt-6 grid grid-cols-2 gap-5">
@@ -159,15 +161,24 @@ function Row({ k, v }: { k: string; v: string }) {
 }
 
 /**
- * Placeholder tiles until the ingest pipeline exists. Deliberately renders a
- * ragged count -- the layout has to survive private and missing photos without
- * leaving holes.
+ * Published photos for one visit. Renders nothing at all when there are none,
+ * rather than leaving a row of empty tiles -- the layout has to survive a visit
+ * whose photos are all still private.
  */
-function PhotoGrid({ count }: { count: number }) {
+function PhotoGrid({ photos }: { photos: PhotoSummary[] }) {
+  if (photos.length === 0) {
+    return <p className="mt-4 text-[13px] text-paper-muted">No photos published from this one yet.</p>;
+  }
   return (
     <div className="mt-5 grid grid-cols-3 gap-1.5">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="aspect-square bg-paper-ink/8" />
+      {photos.map((p) => (
+        <img
+          key={p.id}
+          src={`/api/photo/${p.id}/thumb`}
+          alt={p.caption ?? ""}
+          loading="lazy"
+          className="aspect-square w-full bg-paper-ink/8 object-cover"
+        />
       ))}
     </div>
   );

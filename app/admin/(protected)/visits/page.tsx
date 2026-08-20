@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { getVenues, getVisits } from "@/lib/db/queries";
+import { getAllVisits, getVenues } from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
 
 /** Dense on purpose. This gets used one-handed in a hotel. */
 export default function AdminVisitsPage() {
-  const visits = getVisits();
+  // Admin sees everything, published or not. That is the point of the page.
+  const visits = getAllVisits();
   const venueById = new Map(getVenues().map((v) => [v.id, v]));
 
   return (

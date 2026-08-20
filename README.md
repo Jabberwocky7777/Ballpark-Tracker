@@ -10,9 +10,9 @@ The public site is read-only. Upload and admin are reachable only over Tailscale
 
 Early, and honest about it. See `docs/plan.md` for the full spec and build phases.
 
-**Working:** the check-off rule and its counters, the map dashboard, park and repeated-shot pages, a SQLite schema with migrations and seeded reference data, and the admin lock (host gate plus argon2id login).
+**Working:** the check-off rule and its counters; the map dashboard, park page and repeated-shot grid; a SQLite schema with migrations and seeded reference data; the admin lock (host gate plus argon2id login); and the pure algorithms the ingest pipeline will sit on — geo-matching tiers, timestamp resolution, and the home-coordinate guard, all unit tested.
 
-**Not built yet:** photo upload and the whole ingest pipeline, the assignment queue beyond an empty shell, trips, stats, rankings, guest links. There are no photos in the app at all — the grey tiles are placeholders.
+**Not built yet:** photo upload and the ingest pipeline that would use those algorithms, derivative generation and EXIF stripping, the background job queue, the assignment queue beyond an empty shell, StatsAPI game autofill, trips, stats, rankings, guest links. There are no photos in the app at all, and the park pages say so rather than showing placeholder tiles.
 
 **Unanswered:** whether HEIC decodes inside the target image. `scripts/spike-exif.mjs` and the `spike` image target exist to settle it; they have not been run against real photos.
 

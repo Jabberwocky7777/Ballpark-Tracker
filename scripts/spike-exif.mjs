@@ -19,6 +19,10 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, extname, basename } from "node:path";
 import { performance } from "node:perf_hooks";
+// The same resolver the ingest pipeline uses. Sharing it is the point: the
+// spike is meant to predict what ingest will do, which it cannot do with its
+// own second implementation.
+import { resolveTimestamp } from "../lib/timestamp.ts";
 
 const INPUT = process.argv[2];
 if (!INPUT) {
@@ -67,58 +71,12 @@ const DECODERS = [
   },
 ];
 
-/**
- * Resolve a photo's timestamp the way the real ingest pipeline will.
- * DateTimeOriginal is local wall-clock with NO timezone; storing it as UTC
- * shows a 7:05pm first pitch as a 2am photo.
- */
-function resolveTimestamp(tags) {
-  const local = tags?.DateTimeOriginal ?? tags?.CreateDate ?? null;
-  const offset = tags?.OffsetTimeOriginal ?? tags?.OffsetTime ?? null;
-
-  // GPSDateStamp + GPSTimeStamp are true UTC. Best cross-check when the
-  // offset tag is missing, which is common on older iOS.
-  let gpsUtc = null;
-  if (tags?.GPSDateStamp && tags?.GPSTimeStamp) {
-    // exifr hands GPSTimeStamp back as either [h, m, s] or the string "h:m:s"
-    // depending on the file. Destructuring the string yields "0", ":", "5" and
-    // silently kills this cross-check, so normalize first.
-    const parts = Array.isArray(tags.GPSTimeStamp)
-      ? tags.GPSTimeStamp
-      : String(tags.GPSTimeStamp).split(":");
-    const [h, m, s] = parts.map(Number);
-    const d = String(tags.GPSDateStamp).replaceAll(":", "-");
-    const parsed = new Date(
-      `${d}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(Math.floor(s)).padStart(2, "0")}Z`,
-    );
-    if (!Number.isNaN(parsed.getTime())) gpsUtc = parsed;
-  }
-
-  let source = "none";
-  if (local && offset) source = "OffsetTimeOriginal";
-  else if (local && gpsUtc) source = "derived from GPS UTC";
-  else if (local) source = "wall-clock only -> needs venue tz";
-
-  // When both are present, the difference is the real UTC offset. Sanity-check
-  // it: anything outside +/-14h means one of the two tags is garbage.
-  let derivedOffsetHours = null;
-  if (local && gpsUtc) {
-    const naiveUtc = Date.UTC(
-      local.getFullYear(), local.getMonth(), local.getDate(),
-      local.getHours(), local.getMinutes(), local.getSeconds(),
-    );
-    const diff = (naiveUtc - gpsUtc.getTime()) / 3_600_000;
-    if (Math.abs(diff) <= 14) derivedOffsetHours = Math.round(diff * 4) / 4;
-  }
-
-  return { local, offset, gpsUtc, source, derivedOffsetHours };
-}
-
-function fmt(d) {
-  if (!d) return "—";
-  const p = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-}
+const SOURCE_LABEL = {
+  "exif-offset": "OffsetTimeOriginal",
+  "gps-utc": "derived from GPS UTC",
+  "venue-timezone": "matched venue timezone",
+  none: "wall-clock only -> needs venue tz",
+};
 
 const exifr = (await import("exifr")).default;
 
@@ -174,7 +132,12 @@ for (const file of entries) {
 
   const gps = await exifr.gps(buf).catch(() => null);
   const hasGps = Number.isFinite(gps?.latitude) && Number.isFinite(gps?.longitude);
-  const ts = resolveTimestamp(tags);
+  const ts = resolveTimestamp({
+    dateTimeOriginal: tags?.DateTimeOriginal ?? tags?.CreateDate ?? null,
+    offsetTimeOriginal: tags?.OffsetTimeOriginal ?? tags?.OffsetTime ?? null,
+    gpsDateStamp: tags?.GPSDateStamp ?? null,
+    gpsTimeStamp: tags?.GPSTimeStamp ?? null,
+  });
 
   if (hasGps) {
     tally.gps++;
@@ -186,15 +149,12 @@ for (const file of entries) {
     console.log(`   gps         NONE  ← lands in the manual assignment queue`);
   }
 
-  if (ts.local) {
+  if (ts.takenLocal) {
     if (!hasGps) tally.dateOnly++;
-    if (ts.offset) tally.offsetTag++;
-    if (ts.gpsUtc) tally.gpsUtcCrossCheck++;
-    const off = ts.offset ?? (ts.derivedOffsetHours !== null
-      ? `${ts.derivedOffsetHours >= 0 ? "+" : ""}${ts.derivedOffsetHours} (derived)`
-      : "unknown");
-    console.log(`   taken       ${fmt(ts.local)} local   offset ${off}`);
-    console.log(`   tz source   ${ts.source}`);
+    if (ts.offsetSource === "exif-offset") tally.offsetTag++;
+    if (ts.offsetSource === "gps-utc") tally.gpsUtcCrossCheck++;
+    console.log(`   taken       ${ts.takenLocal.replace("T", " ")} local   offset ${ts.tzOffset ?? "unknown"}`);
+    console.log(`   tz source   ${SOURCE_LABEL[ts.offsetSource]}`);
   } else {
     tally.noDate++;
     console.log(`   taken       NONE  ← no date at all, manual entry required`);

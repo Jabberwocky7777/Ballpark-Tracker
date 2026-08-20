@@ -75,6 +75,26 @@ The seed script is idempotent: every row is upserted by primary key, so re-runni
 
 ---
 
+## 2026-08-19 — Review pass: what the audit changed
+
+A full read-through against the plan, looking for bugs, dead code, and anything that existed without a reason.
+
+**Bugs fixed:**
+
+- The public pages rendered every visit regardless of `visits.is_public`, leaking the notes, seats and date of an unpublished visit. Public routes now read published visits only; admin reads everything. The counters follow the same rule: publishing is what puts a visit on the public site, including in the totals.
+- The park page rendered a fixed number of grey tiles as stand-in photos. It now reads the `photos` table and says plainly when nothing is published, rather than implying photos exist.
+- `/api/photo/[id]/[variant]` did not exist, so the photo grid pointed at a 404. It exists now, and it is where the opaque-id and path-containment rules live.
+
+**Dead code removed:** `venueById`, `venueBySlug`, `venueNameOn` and `franchiseById` in `lib/data/`, all orphaned when the pages moved to the database.
+
+**A comment that lied:** `lib/data/venues.ts` claimed coordinates were checked by `scripts/check-coords.mjs`, which did not exist. It does now — `npm run check:coords` projects all 35 venues and fails if one lands outside the state its record claims. Negative-tested against a transposed lat/lng and a wrong-state shift.
+
+**Duplication removed:** the timestamp resolver lived inside the spike, where the ingest pipeline would have had to reimplement it. It is now `lib/timestamp.ts`, shared by both — a spike that predicts what ingest will do cannot do so with its own second implementation.
+
+**Plan algorithms that existed only as prose,** now built as pure tested modules ahead of the pipeline that needs them: the geo-matching tiers (`lib/geo.ts`), timestamp resolution with its three-tier offset fallback (`lib/timestamp.ts`), and the home-coordinate guard, which no-ops when the coordinates are unset so they never need to appear in the repository.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.

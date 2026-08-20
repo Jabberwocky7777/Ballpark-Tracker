@@ -2,7 +2,7 @@ import Link from "next/link";
 import { UsMap, type MapPin } from "@/components/UsMap";
 import { Fingerprint } from "@/components/Fingerprint";
 import { computeProgress } from "@/lib/progress";
-import { getFranchises, getTenancies, getVenues, getVisits } from "@/lib/db/queries";
+import { getFranchises, getPublicVisits, getTenancies, getVenues } from "@/lib/db/queries";
 import { notYetBlurbs } from "@/lib/data/blurbs";
 import { mapGeometry, projectVenue, separatePins, MAP_WIDTH, MAP_HEIGHT } from "@/lib/map";
 import type { ParkState } from "@/lib/types";
@@ -12,7 +12,9 @@ export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   const venues = getVenues();
-  const visits = getVisits();
+  // Published visits only. An unpublished visit is not on the public site,
+  // and that includes the counters -- publishing is what puts it there.
+  const visits = getPublicVisits();
 
   const progress = computeProgress({
     visits,

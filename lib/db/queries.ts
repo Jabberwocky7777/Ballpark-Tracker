@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { getDb, schema } from "./index";
 import type { Franchise, Tenancy, Trip, Venue, Visit } from "../types";
 
@@ -33,23 +33,59 @@ export function getTenancies(): Tenancy[] {
     .map((t) => ({ ...t, isTemporary: toBool(t.isTemporary), isCurrent: toBool(t.isCurrent) }));
 }
 
-export function getVisits(): Visit[] {
+/**
+ * Every visit, published or not. Admin only.
+ *
+ * The public pages must use the `getPublic*` variants below. A visit is
+ * private until deliberately published, exactly like a photo, and rendering an
+ * unpublished one would leak the notes, the seats and the date.
+ */
+export function getAllVisits(): Visit[] {
+  return getDb().select().from(schema.visits).orderBy(desc(schema.visits.visitDate)).all().map(mapVisit);
+}
+
+export function getPublicVisits(): Visit[] {
   return getDb()
     .select()
     .from(schema.visits)
+    .where(eq(schema.visits.isPublic, 1))
     .orderBy(desc(schema.visits.visitDate))
     .all()
     .map(mapVisit);
 }
 
-export function getVisitsForVenue(venueId: string): Visit[] {
+export function getPublicVisitsForVenue(venueId: string): Visit[] {
   return getDb()
     .select()
     .from(schema.visits)
-    .where(eq(schema.visits.venueId, venueId))
+    .where(and(eq(schema.visits.venueId, venueId), eq(schema.visits.isPublic, 1)))
     .orderBy(desc(schema.visits.visitDate))
     .all()
     .map(mapVisit);
+}
+
+/** Published photos for a visit, in a stable order. */
+export function getPublicPhotosForVisit(visitId: string): PhotoSummary[] {
+  return getDb()
+    .select({
+      id: schema.photos.id,
+      caption: schema.photos.caption,
+      role: schema.photos.role,
+      width: schema.photos.width,
+      height: schema.photos.height,
+    })
+    .from(schema.photos)
+    .where(and(eq(schema.photos.visitId, visitId), eq(schema.photos.isPublic, 1)))
+    .orderBy(asc(schema.photos.createdAt))
+    .all();
+}
+
+export interface PhotoSummary {
+  id: string;
+  caption: string | null;
+  role: string;
+  width: number | null;
+  height: number | null;
 }
 
 export function getVenueBySlug(slug: string): Venue | undefined {

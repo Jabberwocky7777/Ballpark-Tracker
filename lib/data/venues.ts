@@ -2,8 +2,9 @@ import type { Venue, VenueName } from "../types";
 
 /**
  * Public reference data. Coordinates are venue centres, hand-entered and
- * spot-checked against the projection (see scripts/check-coords.mjs) so a
- * transposed lat/lng can't hide until the map renders.
+ * checked by `npm run check:coords`, which projects every one of them and
+ * fails if a park lands outside its own state -- a transposed or sign-flipped
+ * lat/lng is otherwise invisible until someone looks at the map.
  *
  * `fingerprint` indexes the placeholder silhouette set in
  * components/Fingerprint.tsx. Real traced outfield-wall outlines replace it
@@ -84,14 +85,3 @@ export const venueNames: VenueName[] = [
   { venueId: "progressive", name: "Jacobs Field", validFrom: "1994-01-01", validTo: "2008-01-01" },
   { venueId: "progressive", name: "Progressive Field", validFrom: "2008-01-01", validTo: null },
 ];
-
-export const venueById = new Map(venues.map((v) => [v.id, v]));
-export const venueBySlug = new Map(venues.map((v) => [v.slug, v]));
-
-/** The name that was on the building on a given date. Falls back to current. */
-export function venueNameOn(venueId: string, date: string): string {
-  const candidates = venueNames.filter(
-    (n) => n.venueId === venueId && n.validFrom <= date && (n.validTo === null || date < n.validTo),
-  );
-  return candidates[0]?.name ?? venueById.get(venueId)?.name ?? "Unknown venue";
-}
