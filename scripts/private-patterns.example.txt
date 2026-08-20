@@ -1,13 +1,15 @@
 # Copy to scripts/private-patterns.txt and fill in. That file is gitignored.
 #
-# One extended-regex per line; blank lines and # comments are ignored. These
-# are the identifiers that must never reach a public repository but cannot be
-# written into the committed gate script, because the script is published too.
+# These are the identifiers that must never reach a public repository, and that
+# cannot be written into scripts/check-no-secrets.sh, because that script is
+# published too and scans itself.
 #
-# In CI these come from the EXTRA_SECRET_PATTERNS repository secret instead,
-# as the same newline-separated list.
+# One extended-regex per line. Blank lines and # comments are ignored.
+# In CI the same list comes from the EXTRA_SECRET_PATTERNS repository secret.
 #
 # Typical entries:
+#
 #   your-domain-name
 #   YourPoolName|YourOtherPool
-#   3009[0-9]
+#   \b3[0-9]{4}\b
+#   \b(firstname|othername)\b

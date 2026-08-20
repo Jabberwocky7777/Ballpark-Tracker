@@ -20,7 +20,9 @@ Never commit:
 
 Deployment specifics that genuinely matter during a deploy live in `docs/private/deploy.md`, which is gitignored. `docs/deploy.example.md` is the committed, placeholder version.
 
-Before any push: `git ls-files` must contain no `.env`, no `*.db`, no photos, and nothing under `docs/private/`. CI enforces this, but check anyway.
+Before any push: `git ls-files` must contain no `.env`, no `*.db`, no photos, and nothing under `docs/private/`. CI enforces this with `scripts/check-no-secrets.sh`, but check anyway.
+
+**Never write a site-specific identifier into a committed file — not even as a search pattern, a test fixture, an example, or a comment.** The real domain, the pool names, the app port and the two first names live in `scripts/private-patterns.txt`, which is gitignored, and in the `EXTRA_SECRET_PATTERNS` repository secret for CI. The gate scans every tracked file including itself, so putting one back will fail the build. This rule exists because an earlier gate excluded itself from its own scan and therefore published the very identifiers it was written to catch.
 
 Seed data for MLB franchises and venues **is** public reference data and belongs in the repo. It's the one dataset that does.
 
