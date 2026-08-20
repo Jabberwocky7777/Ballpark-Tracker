@@ -57,7 +57,8 @@ Full spec: `docs/plan.md`. Design: `docs/design-brief.md` and `docs/look-and-fee
 - **Two counters, teams as the headline.**
 - **The map is the dashboard.**
 - **Metadata lives in the database only** — nothing is ever written into files on the storage pools.
-- **The map is an Albers USA SVG (`d3-geo`), not a tile map.** No MapLibre, no Google Maps, no tile provider. Thirty fixed points on a styled US outline is an SVG problem, and it keeps the dark map well in `docs/look-and-feel.md` achievable with no external network dependency at render time.
+- **The map is an Albers USA SVG (`d3-geo`), not a tile map.** No MapLibre, no Google Maps, no tile provider. Thirty fixed points on a styled US outline is an SVG problem, and it keeps the cream inset well in `docs/look-and-feel.md` achievable with no external network dependency at render time.
+- **No team logos or wordmarks, anywhere.** Trademarked regardless of personal use. Pin shapes are original stylized outlines. Third-party ballpark photos are not scraped or hot-linked either — the hover preview reads from their own published photos.
 
 ---
 
