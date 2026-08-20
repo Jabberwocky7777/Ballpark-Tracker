@@ -27,7 +27,11 @@ export interface ProjectedVenue {
  * Deterministic: sorted input, fixed iteration count, no randomness, so the
  * server and client agree and the map doesn't jitter between renders.
  */
-export function separatePins(pins: ProjectedVenue[], minDistance = 21): ProjectedVenue[] {
+export function separatePins(
+  pins: ProjectedVenue[],
+  minDistance = 18,
+  maxDisplacement = 26,
+): ProjectedVenue[] {
   const out = [...pins]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((p) => ({ ...p }));
@@ -65,7 +69,33 @@ export function separatePins(pins: ProjectedVenue[], minDistance = 21): Projecte
         moved = true;
       }
     }
+
+    // Cap how far a pin may drift from its real location. Without this the
+    // dense northeast pushes pins halfway across neighbouring states, which
+    // looks wrong to anyone who knows where these cities are -- the map stops
+    // being a map. Clamping inside the loop lets the system settle against the
+    // constraint rather than being yanked back at the end.
+    for (const p of out) {
+      const dx = p.x - p.anchorX;
+      const dy = p.y - p.anchorY;
+      const drift = Math.hypot(dx, dy);
+      if (drift > maxDisplacement) {
+        const k = maxDisplacement / drift;
+        p.x = p.anchorX + dx * k;
+        p.y = p.anchorY + dy * k;
+      }
+    }
+
     if (!moved) break;
+  }
+
+  // A pin that never actually moved should not draw a tether to itself.
+  for (const p of out) {
+    if (Math.hypot(p.x - p.anchorX, p.y - p.anchorY) < 0.5) {
+      p.x = p.anchorX;
+      p.y = p.anchorY;
+      p.nudged = false;
+    }
   }
 
   return out;

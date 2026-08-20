@@ -41,10 +41,15 @@ interface Props {
   pins: MapPin[];
 }
 
-const PIN_W = 19;
+const PIN_W = 16;
+/** Invisible hover/click target. The pin outline alone is a fiddly thing to
+ *  hit with a mouse, especially the hollow ones. */
+const HIT_R = 15;
 const PIN_H = (PIN_W * 26) / 24;
 /** The silhouette's home-plate tip sits at y=23 of the 26-unit box. */
 const TIP_Y = (PIN_H * 23) / 26;
+
+const CARD_W = 170;
 
 const STATE_LABEL: Record<ParkState, string> = {
   done: "visited",
@@ -116,6 +121,13 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
           const label = `${pin.name}, ${pin.city} — ${STATE_LABEL[pin.parkState]}`;
           const shape = (
             <>
+              <circle
+                cx={PIN_W / 2}
+                cy={TIP_Y - PIN_H / 2}
+                r={HIT_R}
+                fill="transparent"
+                stroke="none"
+              />
               <rect
                 className="pin-focus"
                 x={-3}
@@ -193,21 +205,36 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
           pin at any width. Pointer-events off so it never eats the click.
           Desktop only -- there is no hover on a phone, which is what the bottom
           sheet is for. */}
-      {hovered && (
-        <div
-          className="pointer-events-none absolute z-30 hidden w-[168px] -translate-x-1/2 -translate-y-full sm:block"
-          style={{
-            left: `${(hovered.x / width) * 100}%`,
-            top: `${(hovered.y / height) * 100}%`,
-            marginTop: -10,
-          }}
-        >
-          <div className="overflow-hidden rounded-[3px] border border-paper-line bg-card shadow-sm">
-            <PreviewImage photoId={hovered.heroPhotoId} name={hovered.name} />
-            <p className="display px-2 py-1.5 text-[11px] leading-tight">{hovered.name}</p>
+      {hovered && (() => {
+        // Keep the card inside the map. Boston and Seattle sit close enough to
+        // the edges that a centred card hangs off the side, and a park at the
+        // top has no room above it, so it flips underneath instead.
+        const halfCardPct = ((CARD_W / 2) / width) * 100;
+        const xPct = (hovered.x / width) * 100;
+        const leftPct = Math.min(Math.max(xPct, halfCardPct), 100 - halfCardPct);
+        const yPct = (hovered.y / height) * 100;
+        const below = yPct < 34;
+
+        return (
+          <div
+            className="pointer-events-none absolute z-30 hidden -translate-x-1/2 sm:block"
+            style={{
+              width: CARD_W,
+              left: `${leftPct}%`,
+              top: `${yPct}%`,
+              transform: `translateX(-50%) translateY(${below ? "8px" : "calc(-100% - 14px)"})`,
+            }}
+          >
+            <div className="overflow-hidden rounded-[3px] border border-paper-line bg-card shadow-md">
+              <PreviewImage photoId={hovered.heroPhotoId} name={hovered.name} />
+              <p className="display px-2 py-1.5 text-[11px] leading-tight">{hovered.name}</p>
+              <p className="tabular px-2 pb-1.5 text-[9px] text-muted">
+                {hovered.city}, {hovered.state}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {selected && (
         <>

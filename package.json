@@ -19,7 +19,8 @@
     "db:seed": "node scripts/seed.ts",
     "db:reset": "node scripts/migrate.ts && node scripts/seed.ts -- --demo",
     "hash-password": "node scripts/hash-password.ts",
-    "check:coords": "node scripts/check-coords.mjs"
+    "check:coords": "node scripts/check-coords.mjs",
+    "harvest:photos": "node scripts/harvest-park-photos.mjs"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.1.0",
