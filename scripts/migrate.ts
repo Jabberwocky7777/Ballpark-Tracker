@@ -3,7 +3,7 @@
  *
  *   npm run db:migrate
  *
- * The server also migrates on boot via instrumentation.node.ts, so this is not
+ * The server also migrates on boot via lib/startup.ts, so this is not
  * needed in production. It exists because `npm run db:seed` needs tables to
  * exist, and on a fresh checkout you may want to seed before ever starting the
  * dev server.

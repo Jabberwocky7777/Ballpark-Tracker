@@ -1,15 +1,16 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { join } from "node:path";
-import { getDb, dbPath } from "./lib/db";
-import { seedReferenceData } from "./lib/db/seed-data";
-import { startWorker } from "./lib/jobs/worker";
+import { getDb, dbPath } from "./db/index.ts";
+import { seedReferenceData } from "./db/seed-data.ts";
+import { startWorker } from "./jobs/worker.ts";
 
 /**
  * Migrations, reference-data seeding, and a one-line statement of how the admin
  * surface is protected, at boot.
  *
- * Here rather than in a container entrypoint script because Next traces this
- * file's imports into the standalone output. A separate script would need its
+ * Here rather than in a container entrypoint script because Next traces the
+ * root instrumentation.ts through to this file and into the standalone
+ * output. A separate script would need its
  * dependencies shipped by hand -- exactly the mistake that left the atlas JSON
  * out of the image earlier, which built cleanly and died at runtime.
  *

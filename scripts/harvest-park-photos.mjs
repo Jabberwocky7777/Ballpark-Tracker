@@ -2,7 +2,7 @@
 /**
  * Finds freely-licensed ballpark photos and builds a contact sheet to pick from.
  *
- *   npm run harvest:photos            # gather candidates + write contact-sheet.html
+ *   npm run harvest:photos            # gather candidates + a contact sheet to look at
  *   npm run harvest:photos -- --venue wrigley
  *
  * Why: the map's hover preview wants a photo of each park, and ballpark
@@ -22,8 +22,13 @@
  *
  * Nothing is downloaded into the app here. This produces a list to review.
  */
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { venues } from "../lib/data/venues.ts";
+
+// The scripts and their working files live together. Everything in here except
+// picks.json is scratch and gitignored: a candidate dump and a sheet to look at.
+const WORK_DIR = join("scripts", "photo-harvest");
 
 const COMMONS = "https://commons.wikimedia.org/w/api.php";
 const WIKIPEDIA = "https://en.wikipedia.org/w/api.php";
@@ -186,7 +191,8 @@ for (const venue of targets) {
   process.stderr.write(`${list.length} free candidate(s)${lead ? " (lead found)" : ""}\n`);
 }
 
-writeFileSync("park-photo-candidates.json", JSON.stringify(out, null, 2));
+mkdirSync(WORK_DIR, { recursive: true });
+writeFileSync(join(WORK_DIR, "candidates.json"), JSON.stringify(out, null, 2));
 
 // Contact sheet: the only way to judge a camera angle is to look at it.
 const cards = Object.entries(out)
@@ -209,7 +215,7 @@ const cards = Object.entries(out)
   .join("\n");
 
 writeFileSync(
-  "contact-sheet.html",
+  join(WORK_DIR, "contact-sheet.html"),
   `<!doctype html><meta charset="utf-8"><title>Park photo candidates</title>
 <style>
 body{font:13px system-ui;margin:20px;background:#f3efe4;color:#0f1b2e}
@@ -225,5 +231,5 @@ figcaption span{color:#8a7a52}
 ${cards}`,
 );
 
-console.error(`\nWrote park-photo-candidates.json and contact-sheet.html`);
+console.error(`\nWrote candidates.json and contact-sheet.html into ${WORK_DIR}`);
 console.error("Open the contact sheet and pick by eye -- the licence is machine-readable, the angle is not.");

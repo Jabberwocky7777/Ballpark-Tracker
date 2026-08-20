@@ -44,11 +44,9 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Photo-harvest working files. The reviewed picks and the generated data file
-# are committed; the raw candidate dump and the review sheets are scratch.
-park-photo-candidates.json
-contact-sheet.html
-leads-sheet.html
-fix-sheet.html
-harvest.log
-fetch.log
+# Photo-harvest working files, in scripts/photo-harvest/. The reviewed picks
+# (picks.json) and the generated data file are committed; the raw candidate
+# dump and the sheets you look at to choose are scratch.
+scripts/photo-harvest/candidates.json
+scripts/photo-harvest/*.html
+scripts/photo-harvest/*.log
