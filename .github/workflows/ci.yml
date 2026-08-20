@@ -17,10 +17,17 @@ jobs:
       - name: Check for secrets, photos, and infrastructure identifiers
         run: bash scripts/check-no-secrets.sh
 
+      # Invoked directly rather than via gitleaks-action, which scans the range
+      # <first-commit>^..HEAD and therefore fails on the very first push: the
+      # root commit has no parent. Scanning the checked-out tree is also what
+      # we actually want -- the question is what the repo contains now.
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.24.3
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tar.gz             "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks dir . --redact --verbose --exit-code 1
 
   test:
     name: Test

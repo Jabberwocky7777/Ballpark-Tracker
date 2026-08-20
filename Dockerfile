@@ -15,6 +15,11 @@ WORKDIR /app
 
 # ---------------------------------------------------------------- deps -------
 FROM base AS deps
+# better-sqlite3 falls through to `node-gyp rebuild` on install rather than
+# using its bundled prebuilds, so the toolchain has to be here. It stays in
+# this stage only -- the runner copies the built node_modules and never sees a
+# compiler.
+RUN apt-get update  && apt-get install -y --no-install-recommends python3 make g++  && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json* ./
 RUN npm ci
 
