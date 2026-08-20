@@ -24,6 +24,8 @@ Custom Apps do not handle permissions automatically. `chmod` and `setfacl` are n
 
 For each of the three datasets: Storage → Datasets → Edit Permissions → add an entry with **ID Type = User**, **ID = `<APPS_USER_ID>`**, **Full Control**. Check **Apply recursively** and **Apply to child datasets**.
 
+The image runs as that same uid on purpose. If the ACL grants a different id, the container starts, fails to write to `/config`, and dies applying migrations — which reads like a database fault rather than a permissions one.
+
 ## 3. Build and push the image
 
 Handled by `.github/workflows/build.yml` on push to `main`. The image lands in GHCR. It contains no secrets — every value arrives as runtime env — so a public package is fine.

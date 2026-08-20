@@ -58,10 +58,14 @@ ENV NODE_ENV=production \
     ORIGINALS_DIR=/photos/originals \
     DERIVED_DIR=/photos/derived
 
-# Do not set PUID/PGID -- TrueNAS assigns them. This user exists only so the
-# process is not root; the mounts are governed by ZFS ACLs set in the UI.
-RUN groupadd --system --gid 1001 app \
- && useradd --system --uid 1001 --gid app app
+# UID 568 is the `apps` account TrueNAS SCALE runs Custom Apps under, and it is
+# the id the mount ACLs grant full control to. Any other uid here means the
+# container starts, cannot write /config, and dies applying migrations -- which
+# reads like a database fault rather than a permissions one.
+#
+# Not PUID/PGID: that is a linuxserver.io convention this image does not use.
+RUN groupadd --system --gid 568 app \
+ && useradd --system --uid 568 --gid app --home-dir /app app
 
 COPY --from=builder --chown=app:app /app/.next/standalone ./
 COPY --from=builder --chown=app:app /app/.next/static ./.next/static
