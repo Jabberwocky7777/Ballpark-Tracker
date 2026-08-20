@@ -43,3 +43,12 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+
+# Photo-harvest working files. The reviewed picks and the generated data file
+# are committed; the raw candidate dump and the review sheets are scratch.
+park-photo-candidates.json
+contact-sheet.html
+leads-sheet.html
+fix-sheet.html
+harvest.log
+fetch.log

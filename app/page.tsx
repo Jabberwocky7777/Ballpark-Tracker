@@ -10,6 +10,7 @@ import {
   getVenues,
 } from "@/lib/db/queries";
 import { notYetBlurbs } from "@/lib/data/blurbs";
+import { referencePhotos } from "@/lib/data/park-reference-photos";
 import { mapGeometry, projectVenue, separatePins, MAP_WIDTH, MAP_HEIGHT } from "@/lib/map";
 import type { ParkState } from "@/lib/types";
 
@@ -60,6 +61,13 @@ export default function HomePage() {
         blurb: notYetBlurbs[vp.venue.id] ?? "Not yet.",
         newParkFor: vp.newParkFor?.name ?? null,
         heroPhotoId: heroByVenue.get(vp.venue.id) ?? null,
+        reference: referencePhotos[vp.venue.id]
+          ? {
+              file: referencePhotos[vp.venue.id].file,
+              author: referencePhotos[vp.venue.id].author,
+              licence: referencePhotos[vp.venue.id].licence,
+            }
+          : null,
       } satisfies MapPin;
     })
     .filter((p): p is MapPin => p !== null);

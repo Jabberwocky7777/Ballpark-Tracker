@@ -31,6 +31,12 @@ export interface MapPin {
    * stays empty until a photo is uploaded and published.
    */
   heroPhotoId: string | null;
+  /**
+   * A freely-licensed stand-in from Wikimedia Commons, shown until they publish
+   * a photo of their own. The credit is a condition of the licence, so it
+   * travels with the image rather than being optional chrome.
+   */
+  reference: { file: string; author: string; licence: string } | null;
 }
 
 interface Props {
@@ -231,11 +237,21 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
             }}
           >
             <div className="overflow-hidden rounded-[3px] border border-paper-line bg-card shadow-md">
-              <PreviewImage photoId={hovered.heroPhotoId} name={hovered.name} />
+              <PreviewImage
+                photoId={hovered.heroPhotoId}
+                reference={hovered.reference}
+                name={hovered.name}
+              />
               <p className="display px-2 py-1.5 text-[11px] leading-tight">{hovered.name}</p>
-              <p className="tabular px-2 pb-1.5 text-[9px] text-muted">
+              <p className="tabular px-2 text-[9px] text-muted">
                 {hovered.city}, {hovered.state}
               </p>
+              {!hovered.heroPhotoId && hovered.reference && (
+                <p className="px-2 pb-1.5 pt-1 text-[8px] leading-tight text-muted">
+                  {hovered.reference.author} · {hovered.reference.licence}
+                </p>
+              )}
+              {(hovered.heroPhotoId || !hovered.reference) && <div className="pb-1.5" />}
             </div>
           </div>
         );
@@ -286,8 +302,19 @@ export function UsMap({ width, height, statePaths, neighbourPaths, pins }: Props
  * The image slot. Empty until a photo of this park is uploaded and published --
  * a slot for their own photos, not a hole waiting on a scraper.
  */
-function PreviewImage({ photoId, name }: { photoId: string | null; name: string }) {
-  if (!photoId) {
+function PreviewImage({
+  photoId,
+  reference,
+  name,
+}: {
+  photoId: string | null;
+  reference: { file: string; author: string; licence: string } | null;
+  name: string;
+}) {
+  // Their own photo always wins over the borrowed one.
+  const src = photoId ? `/api/photo/${photoId}/thumb` : reference?.file;
+
+  if (!src) {
     return (
       <div className="flex aspect-[16/10] items-center justify-center bg-paper-inset">
         <span className="label px-2 text-center text-[8px] leading-tight text-muted">
@@ -298,7 +325,7 @@ function PreviewImage({ photoId, name }: { photoId: string | null; name: string 
   }
   return (
     <img
-      src={`/api/photo/${photoId}/thumb`}
+      src={src}
       alt={name}
       loading="lazy"
       className="aspect-[16/10] w-full bg-paper-inset object-cover"

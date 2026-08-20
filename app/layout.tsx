@@ -34,8 +34,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </header>
           {children}
-          <footer className="label mt-12 border-t border-paper-line py-6 text-muted">
-            Kept by two people since 2015
+          <footer className="label mt-12 flex items-baseline justify-between border-t border-paper-line py-6 text-muted">
+            <span>Kept by two people since 2015</span>
+            <Link href="/credits" className="hover:text-accent">
+              Photo credits
+            </Link>
           </footer>
         </div>
       </body>
