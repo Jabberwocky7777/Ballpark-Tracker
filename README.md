@@ -8,7 +8,13 @@ The public site is read-only. Upload and admin are reachable only over Tailscale
 
 ## Status
 
-Early. See `docs/plan.md` for the full spec and build phases.
+Early, and honest about it. See `docs/plan.md` for the full spec and build phases.
+
+**Working:** the check-off rule and its counters, the map dashboard, park and repeated-shot pages, a SQLite schema with migrations and seeded reference data, and the admin lock (host gate plus argon2id login).
+
+**Not built yet:** photo upload and the whole ingest pipeline, the assignment queue beyond an empty shell, trips, stats, rankings, guest links. There are no photos in the app at all — the grey tiles are placeholders.
+
+**Unanswered:** whether HEIC decodes inside the target image. `scripts/spike-exif.mjs` and the `spike` image target exist to settle it; they have not been run against real photos.
 
 ## Stack
 
@@ -40,7 +46,11 @@ npm test
 
 Docker container on TrueNAS SCALE via the Custom App wizard. See `docs/deploy.example.md`.
 
-The image contains no secrets. Every value arrives as runtime env.
+The image contains no secrets. Every value arrives as runtime env. On boot the
+container applies pending migrations and seeds the public reference data, both
+idempotent, so a restart is always safe and a fresh install needs no manual
+database step. `GET /api/health` reports whether the process is up and the
+database answers.
 
 ## A note on this repository
 

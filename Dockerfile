@@ -1,28 +1,34 @@
 # syntax=docker/dockerfile:1
 #
-# Multi-stage. Phase 0 builds the `spike` target, which is the gate that decides
-# whether this stack survives contact with real iPhone HEICs. The `runner` stage
-# is scaffolded now and gets the Next.js build wired into it in Phase 1.
+# Two useful targets:
+#   --target spike   the Phase 0 HEIC/EXIF harness, run against real photos
+#   --target runner  the app (default)
 #
 # No secrets are ever baked in. Every value arrives as runtime env from the app
 # wizard, which is what makes a public image package safe.
 
 # ---------------------------------------------------------------- base -------
 FROM node:22-bookworm-slim AS base
-ENV NODE_ENV=production \
+ENV NEXT_TELEMETRY_DISABLED=1 \
     NPM_CONFIG_UPDATE_NOTIFIER=false
 WORKDIR /app
 
 # ---------------------------------------------------------------- deps -------
 FROM base AS deps
 COPY package.json package-lock.json* ./
-# --include=dev is deliberate here: the spike needs the decode candidates, and
-# the runner stage copies only what it needs from `prod-deps` instead.
-RUN npm ci --include=dev
+RUN npm ci
+
+# ---------------------------------------------------------------- build ------
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+# Nothing here reads runtime config: every page that touches the database or
+# env is force-dynamic, so the build never needs a database or a secret.
+RUN npm run build
 
 # ---------------------------------------------------------------- spike ------
-# Adds the third-choice decoder (pillow-heif) so all three candidates from
-# plan section 4.2 can be evaluated in one run, in the real target image.
+# Carries all three decode candidates from plan section 4.2 so a single run
+# evaluates every one of them, inside the real image.
 FROM base AS spike
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 python3-pil python3-pip \
@@ -39,15 +45,31 @@ ENTRYPOINT ["node", "scripts/spike-exif.mjs"]
 CMD ["/in"]
 
 # ---------------------------------------------------------------- runner -----
-# Placeholder until Phase 1. Kept in the file so the deploy shape is visible
-# and so `--target spike` reads as the deliberate choice it is.
 FROM base AS runner
-RUN groupadd -r app && useradd -r -g app app
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json ./
-COPY scripts/ ./scripts/
-# The app writes only to the mounted volumes; nothing is written to the image.
-VOLUME ["/config", "/photos/originals", "/photos/derived"]
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    DATA_DIR=/config \
+    ORIGINALS_DIR=/photos/originals \
+    DERIVED_DIR=/photos/derived
+
+# Do not set PUID/PGID -- TrueNAS assigns them. This user exists only so the
+# process is not root; the mounts are governed by ZFS ACLs set in the UI.
+RUN groupadd --system --gid 1001 app \
+ && useradd --system --uid 1001 --gid app app
+
+COPY --from=builder --chown=app:app /app/.next/standalone ./
+COPY --from=builder --chown=app:app /app/.next/static ./.next/static
+# Migrations are .sql files; Next's tracer does not follow them, and
+# instrumentation.ts reads them from disk at boot.
+COPY --from=builder --chown=app:app /app/drizzle ./drizzle
+
+# The mount points must exist before the volumes land on them.
+RUN mkdir -p /config /photos/originals /photos/derived && chown -R app:app /config /photos
+
 USER app
 EXPOSE 3000
-CMD ["node", "-e", "console.error('No app yet. Phase 1 wires the Next.js build into this stage. For the Phase 0 spike, build with --target spike.'); process.exit(1)"]
+
+# Migrations and reference-data seeding run in instrumentation.ts when the
+# server boots, so there is no entrypoint script to keep in sync.
+CMD ["node", "server.js"]

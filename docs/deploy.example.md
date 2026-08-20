@@ -55,6 +55,7 @@ Because uploads go over Tailscale rather than through the proxy, the usual `clie
 
 ## 6. Verify before calling it done
 
+- [ ] `https://<PUBLIC_HOSTNAME>/api/health` returns `{"ok":true,...}` with a non-zero venue count — that proves the config mount is writable and migrations ran
 - [ ] `https://<PUBLIC_HOSTNAME>/` loads the map from a device **off** the tailnet
 - [ ] `https://<PUBLIC_HOSTNAME>/admin` returns **404** from that same device
 - [ ] `https://<PUBLIC_HOSTNAME>/api/upload` returns **404** from that same device
