@@ -44,7 +44,9 @@ A self-hosted web app tracking one couple's mission to attend a game at every ML
 
 Photos are uploaded from iPhones. Embedded EXIF GPS and timestamps are used to auto-assign each photo to a ballpark and a visit date.
 
-Full spec: `docs/plan.md`. Design: `docs/design-brief.md` and `docs/look-and-feel.md`. Decision log: `docs/decisions.md`.
+**Start with `docs/status.md`** — what is built, what is not, and what to do next.
+
+Full spec: `docs/plan.md`. Design: `docs/look-and-feel.md` (current) and `docs/design-brief.md` (historical). Decision log: `docs/decisions.md`.
 
 ---
 
