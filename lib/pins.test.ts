@@ -32,8 +32,9 @@ describe("separatePins", () => {
   });
 
   test("pushes near-coincident pins to the minimum distance", () => {
-    // Globe Life Field and the park it replaced, 0.1px apart in reality.
-    const out = separatePins([pin("globelife", 300, 300), pin("globelifepark", 300.1, 300)], 16);
+    // Two parks sharing a site, a tenth of a pixel apart at map scale. Real
+    // pairs like this come and go from the seed; the arithmetic does not.
+    const out = separatePins([pin("a", 300, 300), pin("b", 300.1, 300)], 16);
     assert.ok(minGap(out) >= 15.9, `expected >= 16, got ${minGap(out)}`);
     assert.ok(out.every((p) => p.nudged));
   });

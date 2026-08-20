@@ -1,3 +1,8 @@
+> **Historical.** This is the brief as originally written, kept for the reasoning
+> behind the product. The palette it describes — field green, chalk white, dusk
+> navy — was superseded by the cream repaint. `docs/look-and-feel.md` is the
+> current source of truth for colour and type.
+
 # Ballpark Tracker — Design Brief
 *Design brief.*
 

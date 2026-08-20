@@ -110,6 +110,21 @@ Tests for these run with `--conditions=react-server` so modules guarded by `serv
 
 ---
 
+## 2026-08-20 — Repainted to cream; there is no dark surface any more
+
+Supersedes the palette half of the map decision above. The `--ink-deep` well it refers to no longer exists; the map's inset is `--paper-inset`, one shade darker than the page. The choice of an Albers USA SVG over a tile map is unchanged and was never about colour.
+
+The whole product is one warm cream surface. The dark dashboard, and the light/dark split between the map and the park pages, are both gone. One ink, one muted brown, orange for done, gold for the asterisk caveat, and nothing else. Oswald replaced Instrument Serif.
+
+**Also settled here:**
+
+- **No team logos or wordmarks, ever.** Trademarked regardless of personal use. Pin shapes are original stylized outlines — abbreviation badges were tried and reverted.
+- **No third-party ballpark photos.** Aerial-photo directories are copyrighted. The map's hover preview uses freely-licensed Wikimedia Commons photos with the attribution the licence requires, and their own photos take precedence once published. Five parks have no photo because no free one exists from behind the plate; empty beats wrong.
+- **Parks that closed before 2020 are out of the seed.** Turner Field and Globe Life Park in Arlington. Oakland Coliseum stays — it closed in 2024.
+- **The 520px column grows on wider screens** (660px, then 880px). The spec still says a flat 520px; seen on a desktop monitor that is a narrow ribbon with two thirds of the screen empty.
+
+---
+
 ## Open — HEIC decode path
 
 To be resolved by the Phase 0 spike, run inside the built container image. Candidates in order: `sharp` with a libvips build including libheif → `heic-convert` → a Python `pillow-heif` sidecar. All three are present in the `spike` image target so one run evaluates all of them.
